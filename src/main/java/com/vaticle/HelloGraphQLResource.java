@@ -1,9 +1,7 @@
 package com.vaticle;
 
-import com.typedb.examples.fraud.dao.BankDAO;
-import com.typedb.examples.fraud.dao.CardholderDAO;
-import com.typedb.examples.fraud.dao.MerchantDAO;
-import com.typedb.examples.fraud.dao.TransactionDAO;
+import com.typedb.examples.fraud.Pair.CardHolder__Merchant;
+import com.typedb.examples.fraud.dao.*;
 import com.typedb.examples.fraud.model.*;
 import org.eclipse.microprofile.graphql.DefaultValue;
 import org.eclipse.microprofile.graphql.Description;
@@ -139,4 +137,53 @@ public class HelloGraphQLResource {
   }
 }
      */
+
+
+
+    @Query
+    @Description("test read")
+    public Set<CardHolder__Merchant> getMatchRule() throws IOException {
+        TypeDB_SessionWrapper typeDBw = new TypeDB_SessionWrapper();
+        GenericDAO genericDAO = new GenericDAO(typeDBw);
+        return genericDAO.retrieveRule();
+    }
+
+    /*
+
+    {
+matchRule{
+  cardholder {
+    date_of_birth
+    gender
+    job
+    person_first_name
+    person_last_name
+    address {
+      city
+      state
+      street
+      zip
+    }
+    creditCard {
+      card_number
+    }
+    cardholderCoordinates {
+      latitude
+      longitude
+    }
+  }
+
+  merchant {
+    company_cat
+    company_name
+    merchantCoordinates {
+      latitude
+      longitude
+    }
+  }
+}
+}
+
+     */
+
 }

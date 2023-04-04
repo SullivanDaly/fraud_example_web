@@ -2,6 +2,8 @@ package com.typedb.examples.fraud.model;
 
 import com.opencsv.bean.CsvBindByName;
 
+import java.util.Objects;
+
 public class CreditCard {
     @CsvBindByName(column = "cc_num")
     private String card_number;
@@ -31,5 +33,17 @@ public class CreditCard {
                 ", card_number='" + card_number + '\'' +
                 ", bank='" + bank + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CreditCard that)) return false;
+        return card_number.equals(that.card_number) && bank.equals(that.bank);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(card_number, bank);
     }
 }

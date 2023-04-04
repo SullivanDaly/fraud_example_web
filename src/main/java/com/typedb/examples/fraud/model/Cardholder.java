@@ -3,6 +3,8 @@ package com.typedb.examples.fraud.model;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvRecurse;
 
+import java.util.Objects;
+
 public class Cardholder {
     @CsvBindByName(column = "first")
     private String person_first_name;
@@ -76,5 +78,19 @@ public class Cardholder {
                 ", address=" + address +
                 ", cardholderCoordinates=" + cardholderCoordinates +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Cardholder that)) return false;
+        return person_first_name.equals(that.person_first_name) && person_last_name.equals(that.person_last_name) &&
+                gender.equals(that.gender) && job.equals(that.job) && date_of_birth.equals(that.date_of_birth) &&
+                address.equals(that.address) && cardholderCoordinates.equals(that.cardholderCoordinates);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(person_first_name, person_last_name);
     }
 }

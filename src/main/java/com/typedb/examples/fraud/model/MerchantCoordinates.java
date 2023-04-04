@@ -2,6 +2,8 @@ package com.typedb.examples.fraud.model;
 
 import com.opencsv.bean.CsvBindByName;
 
+import java.util.Objects;
+
 public class MerchantCoordinates {
     @CsvBindByName(column = "merch_lat")
     private String latitude_company;
@@ -27,5 +29,17 @@ public class MerchantCoordinates {
                 "latitude_company='" + latitude_company + '\'' +
                 ", longitude_company='" + longitude_company + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MerchantCoordinates that)) return false;
+        return latitude_company.equals(that.latitude_company) && longitude_company.equals(that.longitude_company);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(latitude_company, longitude_company);
     }
 }

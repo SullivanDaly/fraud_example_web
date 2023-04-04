@@ -3,6 +3,8 @@ package com.typedb.examples.fraud.model;
 import com.opencsv.bean.CsvBindByName;
 import com.opencsv.bean.CsvRecurse;
 
+import java.util.Objects;
+
 public class Transaction {
     @CsvBindByName(column = "amt")
     private String amount;
@@ -46,5 +48,19 @@ public class Transaction {
 
     public Cardholder getCardholder() {
         return cardholder;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Transaction that)) return false;
+        return amount.equals(that.amount) && transaction_number.equals(that.transaction_number) &&
+                date_transaction.equals(that.date_transaction) && merchant.equals(that.merchant) &&
+                cardholder.equals(that.cardholder);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(amount, transaction_number, date_transaction, merchant, cardholder);
     }
 }

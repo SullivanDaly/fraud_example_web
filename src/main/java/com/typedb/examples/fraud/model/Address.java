@@ -2,6 +2,8 @@ package com.typedb.examples.fraud.model;
 
 import com.opencsv.bean.CsvBindByName;
 
+import java.util.Objects;
+
 public class Address {
     @CsvBindByName(column = "street")
     private String street;
@@ -45,4 +47,15 @@ public class Address {
                 '}';
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Address address)) return false;
+        return street.equals(address.street) && city.equals(address.city) && state.equals(address.state) && zip.equals(address.zip);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(street, city, state, zip);
+    }
 }

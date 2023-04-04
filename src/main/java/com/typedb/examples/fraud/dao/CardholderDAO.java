@@ -4,8 +4,12 @@ import com.typedb.examples.fraud.model.*;
 import org.example.TypeDB_SessionWrapper;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CardholderDAO {
 
@@ -17,7 +21,7 @@ public class CardholderDAO {
             + "$car isa Card, has card_number %s;"
             + "$r3(location: $add, geo: $gcp, identify: $per) isa locate;\n";
 
-    private final String queryGet = "match $geo isa Geo_coordinate, has longitude $lon, has latitude $lat;"
+    private final String queryGet = "$geo isa Geo_coordinate, has longitude $lon, has latitude $lat;"
         + "$add isa Address, has street $street, has city $city, has state $state, has zip $zip;"
         + "$per isa Person, has first_name $first, has last_name $last, has gender $gen, has job $job, has date_of_birth $birth;"
         + "$car isa Card, has card_number $nbcar;"
@@ -25,7 +29,8 @@ public class CardholderDAO {
         + "(location: $add, geo: $geo, identify: $per) isa locate;"
         + "(owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;";
 
-    private final List<String> lArg = Arrays.asList("first", "last", "gen", "job", "birth", "street", "city", "state", "zip", "nbcar", "bank", "lat", "lon");
+
+    private final List<String> lArg = Stream.of("first", "last", "gen", "job", "birth", "street", "city", "state", "zip", "nbcar", "bank", "lat", "lon").collect(Collectors.toList());
 
     public CardholderDAO( TypeDB_SessionWrapper wrapper) {
         this.wrapper = wrapper;
@@ -59,13 +64,9 @@ public class CardholderDAO {
         BankDAO bankDAO = new BankDAO(wrapper);
         Hashtable<String, Bank> hBank = bankDAO.retrieveInternal();
         Set<Cardholder> sCardholder = new HashSet<Cardholder>();
-        Set<List<String>> sCardholderStr = wrapper.read_data(queryGet, lArg);
+        Set<List<String>> sCardholderStr = wrapper.read_data("match " + queryGet, lArg);
         for (List<String> currentStrCardholder : sCardholderStr) {
-            Address tempAddress = new Address(currentStrCardholder.get(5), currentStrCardholder.get(6), currentStrCardholder.get(7), currentStrCardholder.get(8));
-            CardholderCoordinates tempCoord = new CardholderCoordinates(currentStrCardholder.get(11), currentStrCardholder.get(12));
-            CreditCard tempCard = new CreditCard(currentStrCardholder.get(9), hBank.get(currentStrCardholder.get(10)));
-            sCardholder.add(new Cardholder(currentStrCardholder.get(0), currentStrCardholder.get(1), currentStrCardholder.get(2),
-                    currentStrCardholder.get(3), currentStrCardholder.get(4), tempAddress, tempCoord, tempCard));
+            sCardholder.add(cardholderBuilder(currentStrCardholder, hBank));
         }
         return sCardholder;
     }
@@ -74,16 +75,33 @@ public class CardholderDAO {
         BankDAO bankDAO = new BankDAO(wrapper);
         Hashtable<String, Bank> hBank = bankDAO.retrieveInternal();
         Hashtable<String, Cardholder> hCardholder = new Hashtable<String, Cardholder>();
-        Set<List<String>> sCardholderStr = wrapper.read_data(queryGet, lArg);
+        Set<List<String>> sCardholderStr = wrapper.read_data("match " + queryGet, lArg);
         for (List<String> currentStrCardholder : sCardholderStr) {
-            Address tempAddress = new Address(currentStrCardholder.get(5), currentStrCardholder.get(6), currentStrCardholder.get(7), currentStrCardholder.get(8));
-            CardholderCoordinates tempCoord = new CardholderCoordinates(currentStrCardholder.get(11), currentStrCardholder.get(12));
-            CreditCard tempCard = new CreditCard(currentStrCardholder.get(9), hBank.get(currentStrCardholder.get(10)));
-            hCardholder.put(currentStrCardholder.get(0)+currentStrCardholder.get(1), new Cardholder(currentStrCardholder.get(0), currentStrCardholder.get(1), currentStrCardholder.get(2),
-                    currentStrCardholder.get(3), currentStrCardholder.get(4), tempAddress, tempCoord, tempCard));
+            hCardholder.put(currentStrCardholder.get(0)+currentStrCardholder.get(1), cardholderBuilder(currentStrCardholder, hBank));
         }
         return hCardholder;
     }
 
+    public Cardholder cardholderBuilder(List<String> pList, Hashtable<String, Bank> hBank){
+        return cardholderBuilder(pList, hBank, 0);
+    }
 
+    public Cardholder cardholderBuilder(List<String> pList, Hashtable<String, Bank> hBank, int pBegin){
+
+        Address tempAddress = new Address(pList.get(pBegin +5), pList.get(pBegin + 6), pList.get(pBegin + 7), pList.get(pBegin + 8));
+        CardholderCoordinates tempCoord = new CardholderCoordinates(pList.get(pBegin + 11), pList.get(pBegin + 12));
+        CreditCard tempCard = new CreditCard(pList.get(pBegin + 9), hBank.get(pList.get(pBegin + 10)));
+        Cardholder tmpCardholder = new Cardholder(pList.get(pBegin + 0), pList.get(pBegin + 1), pList.get(pBegin + 2),
+                    pList.get(pBegin + 3), pList.get(pBegin + 4), tempAddress, tempCoord, tempCard);
+
+        return tmpCardholder;
+    }
+
+    public String getQueryGet() {
+        return queryGet;
+    }
+
+    public List<String> getlArg() {
+        return lArg;
+    }
 }

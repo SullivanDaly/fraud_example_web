@@ -1,5 +1,7 @@
 package com.typedb.examples.fraud.model;
 
+import java.util.Objects;
+
 public class BankCoordinates {
     private String latitude;
     private String longitude;
@@ -23,5 +25,17 @@ public class BankCoordinates {
                 "latitude='" + latitude + '\'' +
                 ", longitude='" + longitude + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof BankCoordinates that)) return false;
+        return latitude.equals(that.latitude) && longitude.equals(that.longitude);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(latitude, longitude);
     }
 }

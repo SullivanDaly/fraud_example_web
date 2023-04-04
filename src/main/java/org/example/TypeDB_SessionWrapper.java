@@ -53,8 +53,7 @@ public class TypeDB_SessionWrapper {
         TypeDBClient client = TypeDB.coreClient(ip_server + ":" + port_server);
         Set<List<String>> lBank = new HashSet<List<String>>();
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-            TypeDBSession session = client.session(database_name, TypeDBSession.Type.DATA);
+        TypeDBSession session = client.session(database_name, TypeDBSession.Type.DATA);
         TypeDBTransaction readTransaction = session.transaction(TypeDBTransaction.Type.READ, TypeDBOptions.core().infer(true));
         if (readTransaction.isOpen()) {
 
