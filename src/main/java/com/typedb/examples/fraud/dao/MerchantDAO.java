@@ -5,7 +5,10 @@ import com.typedb.examples.fraud.model.MerchantCoordinates;
 import org.example.TypeDB_SessionWrapper;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 

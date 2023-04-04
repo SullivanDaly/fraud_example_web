@@ -4,8 +4,12 @@ import com.typedb.examples.fraud.model.*;
 import org.example.TypeDB_SessionWrapper;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TransactionDAO {
     private final TypeDB_SessionWrapper wrapper;
@@ -27,7 +31,7 @@ public class TransactionDAO {
         + "(owner: $per, attached_card: $car, $ban) isa bank_account;"
         + "(used_card: $car ,to: $com) isa transaction, has timestamp $time, has amount $amoun, has transaction_number $transac;";
 
-    private final List<String> lArg = Arrays.asList("first", "last", "comp", "amoun", "transac", "time");
+    private final List<String> lArg = Stream.of("first", "last", "comp", "amoun", "transac", "time").collect(Collectors.toList());
 
 
     public TransactionDAO(TypeDB_SessionWrapper wrapper) {

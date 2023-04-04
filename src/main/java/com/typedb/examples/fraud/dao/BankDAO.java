@@ -5,8 +5,12 @@ import com.typedb.examples.fraud.model.BankCoordinates;
 import org.example.TypeDB_SessionWrapper;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BankDAO {
     private final TypeDB_SessionWrapper wrapper;
@@ -19,7 +23,7 @@ public class BankDAO {
             "$b isa Bank, has name $na;" +
             "(geo: $geo, identify: $b) isa geolocate;";
 
-    private final List<String> lArg = Arrays.asList("na", "lat", "lon");
+    private final List<String> lArg = Stream.of("na", "lat", "lon").collect(Collectors.toList());
 
     public BankDAO(TypeDB_SessionWrapper wrapper) {
         this.wrapper = wrapper;

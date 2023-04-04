@@ -2,11 +2,13 @@ package com.typedb.examples.fraud.dao;
 
 import com.typedb.examples.fraud.Pair.CardHolder__Merchant;
 import com.typedb.examples.fraud.model.*;
-import com.vaticle.typedb.common.collection.Pair;
 import org.example.TypeDB_SessionWrapper;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 
 public class GenericDAO {
     private final TypeDB_SessionWrapper wrapper;
@@ -32,10 +34,8 @@ public class GenericDAO {
                 + merchantDAO.getQueryGet() + queryRule, lArgs);
 
         for (List<String> currentStrRule : sRuleStr) {
-            CardHolder__Merchant tmp = new CardHolder__Merchant(cardholderDAO.cardholderBuilder(currentStrRule, hBank),
-                    merchantDAO.merchantBuilder(currentStrRule, sizeCut));
-            sRule.add(tmp);
-            System.out.println(tmp.hashCode());
+            sRule.add(new CardHolder__Merchant(cardholderDAO.cardholderBuilder(currentStrRule, hBank),
+                    merchantDAO.merchantBuilder(currentStrRule, sizeCut)));
         }
 
         return sRule;
