@@ -3,9 +3,10 @@ package org.example;
 import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
 
-    }
+  public static void main(String[] args) throws IOException {
+
+  }
 
     /*
         private void read_data() throws IOException {

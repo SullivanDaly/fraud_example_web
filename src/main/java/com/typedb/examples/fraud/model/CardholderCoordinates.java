@@ -1,45 +1,49 @@
 package com.typedb.examples.fraud.model;
 
 import com.opencsv.bean.CsvBindByName;
-
 import java.util.Objects;
 
 public class CardholderCoordinates {
-    @CsvBindByName(column = "lat")
-    private String latitude;
-    @CsvBindByName(column = "long")
-    private String longitude;
 
-    public CardholderCoordinates(String latitude, String longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
+  @CsvBindByName(column = "lat")
+  private String latitude;
+  @CsvBindByName(column = "long")
+  private String longitude;
 
-    public String getLatitude() {
-        return latitude;
-    }
+  public CardholderCoordinates(String latitude, String longitude) {
+    this.latitude = latitude;
+    this.longitude = longitude;
+  }
 
-    public String getLongitude() {
-        return longitude;
-    }
+  public String getLatitude() {
+    return latitude;
+  }
 
-    @Override
-    public String toString() {
-        return "Coordinates{" +
-                "latitude='" + latitude + '\'' +
-                ", longitude='" + longitude + '\'' +
-                '}';
-    }
+  public String getLongitude() {
+    return longitude;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CardholderCoordinates that)) return false;
-        return latitude.equals(that.latitude) && longitude.equals(that.longitude);
-    }
+  @Override
+  public String toString() {
+    return "Coordinates{" +
+        "latitude='" + latitude + '\'' +
+        ", longitude='" + longitude + '\'' +
+        '}';
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(latitude, longitude);
-    }
+  @Override
+  public boolean equals(Object o) {
+      if (this == o) {
+          return true;
+      }
+      if (!(o instanceof CardholderCoordinates that)) {
+          return false;
+      }
+    return latitude.equals(that.latitude) && longitude.equals(that.longitude);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(latitude, longitude);
+  }
 }

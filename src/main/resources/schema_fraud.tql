@@ -149,3 +149,4 @@ rule isa_same_place:
     } then {
         (person: $per, company: $com, located_com: $geo2, located_per: $geo1) isa same_place;
     };
+
