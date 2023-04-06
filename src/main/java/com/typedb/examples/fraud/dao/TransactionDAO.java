@@ -73,8 +73,8 @@ public class TransactionDAO {
     Hashtable<String, Cardholder> cardholders = cardholderDAO.retrieveInternal();
 
     Set<Transaction> transactions = new HashSet<Transaction>();
-    Set<List<String>> transactionsStr = wrapper.read_data(queryGet, args);
-    for (List<String> currentTransaction : transactionsStr) {
+    Set<Hashtable<String, String>> transactionsStr = wrapper.read_data(queryGet, args);
+    for (Hashtable<String, String> currentTransaction : transactionsStr) {
       Cardholder tempCardholder = cardholders.get(
           currentTransaction.get(0) + currentTransaction.get(1));
       Merchant tempMerchant = merchants.get(currentTransaction.get(2));

@@ -4,12 +4,12 @@ import com.typedb.examples.fraud.model.Cardholder;
 import com.typedb.examples.fraud.model.Merchant;
 import java.util.Objects;
 
-public class CardHolder__Merchant {
+public class CardHolderMerchant {
 
   private Cardholder cardholder;
   private Merchant merchant;
 
-  public CardHolder__Merchant(Cardholder cardholder, Merchant merchant) {
+  public CardHolderMerchant(Cardholder cardholder, Merchant merchant) {
     this.cardholder = cardholder;
     this.merchant = merchant;
   }
@@ -27,7 +27,7 @@ public class CardHolder__Merchant {
       if (this == o) {
           return true;
       }
-      if (!(o instanceof CardHolder__Merchant that)) {
+      if (!(o instanceof CardHolderMerchant that)) {
           return false;
       }
     return cardholder.equals(that.cardholder) && merchant.equals(that.merchant);

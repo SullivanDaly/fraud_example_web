@@ -48,20 +48,20 @@ public class BankDAO {
 
   public Set<Bank> retrieveAll() throws IOException {
     Set<Bank> banks = new HashSet<Bank>();
-    Set<List<String>> banksStr = wrapper.read_data(queryGet, args);
-    for (List<String> currentBank : banksStr) {
-      banks.add(new Bank(currentBank.get(0),
-          new BankCoordinates(currentBank.get(1), currentBank.get(2))));
+    Set<Hashtable<String, String>> banksStr = wrapper.read_data(queryGet, args);
+    for (Hashtable<String, String> currentBank : banksStr) {
+      banks.add(new Bank(currentBank.get("na"),
+          new BankCoordinates(currentBank.get("lat"), currentBank.get("lon"))));
     }
     return banks;
   }
 
   public Hashtable<String, Bank> retrieveInternal() throws IOException {
     Hashtable<String, Bank> banks = new Hashtable<String, Bank>();
-    Set<List<String>> banksStr = wrapper.read_data(queryGet, args);
-    for (List<String> currentBank : banksStr) {
-      banks.put(currentBank.get(0), new Bank(currentBank.get(0),
-          new BankCoordinates(currentBank.get(1), currentBank.get(2))));
+    Set<Hashtable<String, String>> banksStr = wrapper.read_data(queryGet, args);
+    for (Hashtable<String, String> currentBank : banksStr) {
+      banks.put(currentBank.get("na"), new Bank(currentBank.get("na"),
+          new BankCoordinates(currentBank.get("lat"), currentBank.get("lon"))));
     }
     return banks;
   }

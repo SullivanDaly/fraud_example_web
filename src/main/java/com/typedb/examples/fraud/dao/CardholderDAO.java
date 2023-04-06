@@ -1,5 +1,6 @@
 package com.typedb.examples.fraud.dao;
 
+import com.typedb.examples.fraud.Pair.CardHolderMerchant;
 import com.typedb.examples.fraud.model.Address;
 import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.Cardholder;
@@ -32,9 +33,13 @@ public class CardholderDAO {
       + "(location: $add, geo: $geo, identify: $per) isa locate;"
       + "(owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;";
 
+  private final String querySafe = "(person: $per, company: $com, $geo1, $geo2) isa same_place;";
+
+  private final String queryUnsafe = "(person: $per, company: $com) isa unsafe_relationship";
 
   private final List<String> args = Stream.of("first", "last", "gen", "job", "birth", "street",
       "city", "state", "zip", "nbcar", "bank", "lat", "lon").collect(Collectors.toList());
+
 
   public CardholderDAO(TypeDB_SessionWrapper wrapper) {
     this.wrapper = wrapper;
@@ -68,8 +73,8 @@ public class CardholderDAO {
     BankDAO bankDAO = new BankDAO(wrapper);
     Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
     Set<Cardholder> cardholders = new HashSet<Cardholder>();
-    Set<List<String>> cardholdersStr = wrapper.read_data("match " + queryGet, args);
-    for (List<String> currentCardholder : cardholdersStr) {
+    Set<Hashtable<String, String>> cardholdersStr = wrapper.read_data("match " + queryGet, args);
+    for (Hashtable<String, String> currentCardholder : cardholdersStr) {
       cardholders.add(cardholderBuilder(currentCardholder, banks));
     }
     return cardholders;
@@ -79,31 +84,65 @@ public class CardholderDAO {
     BankDAO bankDAO = new BankDAO(wrapper);
     Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
     Hashtable<String, Cardholder> cardholders = new Hashtable<String, Cardholder>();
-    Set<List<String>> cardholdersStr = wrapper.read_data("match " + queryGet, args);
-    for (List<String> currentCardholder : cardholdersStr) {
+    Set<Hashtable<String, String>> cardholdersStr = wrapper.read_data("match " + queryGet, args);
+    for (Hashtable<String, String> currentCardholder : cardholdersStr) {
       cardholders.put(currentCardholder.get(0) + currentCardholder.get(1),
           cardholderBuilder(currentCardholder, banks));
     }
     return cardholders;
   }
 
-  public Cardholder cardholderBuilder(List<String> cardholdersParam, Hashtable<String, Bank> banksParam) {
-    return cardholderBuilder(cardholdersParam, banksParam, 0);
-  }
-
-  public Cardholder cardholderBuilder(List<String> cardholdersParam, Hashtable<String, Bank> banksParam,
-      int beginParam) {
-
-    Address tempAddress = new Address(cardholdersParam.get(beginParam + 5), cardholdersParam.get(beginParam + 6),
-        cardholdersParam.get(beginParam + 7), cardholdersParam.get(beginParam + 8));
-    CardholderCoordinates tempCoord = new CardholderCoordinates(cardholdersParam.get(beginParam + 11),
-        cardholdersParam.get(beginParam + 12));
-    CreditCard tempCard = new CreditCard(cardholdersParam.get(beginParam + 9), banksParam.get(cardholdersParam.get(beginParam + 10)));
-    Cardholder resultCardholder = new Cardholder(cardholdersParam.get(beginParam + 0), cardholdersParam.get(beginParam + 1),
-        cardholdersParam.get(beginParam + 2),
-        cardholdersParam.get(beginParam + 3), cardholdersParam.get(beginParam + 4), tempAddress, tempCoord, tempCard);
+  public Cardholder cardholderBuilder(Hashtable<String, String> cardholdersParam, Hashtable<String, Bank> banksParam) {
+    Address tempAddress = new Address(cardholdersParam.get("street"), cardholdersParam.get("city"),
+        cardholdersParam.get("state"), cardholdersParam.get("zip"));
+    CardholderCoordinates tempCoord = new CardholderCoordinates(cardholdersParam.get("lat"),
+        cardholdersParam.get("lon"));
+    CreditCard tempCard = new CreditCard(cardholdersParam.get("nbcar"), banksParam.get(cardholdersParam.get("bank")));
+    Cardholder resultCardholder = new Cardholder(cardholdersParam.get("first"), cardholdersParam.get("last"),
+        cardholdersParam.get("gen"),
+        cardholdersParam.get("job"), cardholdersParam.get("birth"), tempAddress, tempCoord, tempCard);
 
     return resultCardholder;
+  }
+
+  public Set<CardHolderMerchant> retrievePossibleSafeTransaction() throws IOException {
+    MerchantDAO merchantDAO = new MerchantDAO(wrapper);
+    BankDAO bankDAO = new BankDAO(wrapper);
+    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
+
+    List<String> args = this.args;
+    args.addAll(merchantDAO.getArgs());
+
+    Set<CardHolderMerchant> rules = new HashSet<CardHolderMerchant>();
+    Set<Hashtable<String, String>> rulesStr = wrapper.read_data("match " + this.getQueryGet()
+        + merchantDAO.getQueryGet() + querySafe, args);
+
+    for (Hashtable<String, String> currentStrRule : rulesStr) {
+      rules.add(new CardHolderMerchant(cardholderBuilder(currentStrRule, banks),
+          merchantDAO.merchantBuilder(currentStrRule)));
+    }
+
+    return rules;
+  }
+
+  public Set<CardHolderMerchant> retrieveUnsafeTransaction() throws IOException {
+    MerchantDAO merchantDAO = new MerchantDAO(wrapper);
+    BankDAO bankDAO = new BankDAO(wrapper);
+    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
+
+    List<String> args = this.args;
+    args.addAll(merchantDAO.getArgs());
+
+    Set<CardHolderMerchant> rules = new HashSet<CardHolderMerchant>();
+    Set<Hashtable<String, String>> rulesStr = wrapper.read_data("match " + this.getQueryGet()
+        + merchantDAO.getQueryGet() + queryUnsafe, args);
+
+    for (Hashtable<String, String> currentStrRule : rulesStr) {
+      rules.add(new CardHolderMerchant(cardholderBuilder(currentStrRule, banks),
+          merchantDAO.merchantBuilder(currentStrRule)));
+    }
+
+    return rules;
   }
 
   public String getQueryGet() {

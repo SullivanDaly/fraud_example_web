@@ -86,7 +86,8 @@ Person sub entity,
     plays bank_account:owner,
     plays locate:identify,
     plays customer_relationship:buyer,
-    plays same_place:person;
+    plays same_place:person,
+    plays unsafe_relationship:unsafe_buyer;
 
 Company sub entity,
     owns name,
@@ -94,7 +95,8 @@ Company sub entity,
     plays transaction:to,
     plays geolocate:identify,
     plays customer_relationship:company,
-    plays same_place:company;
+    plays same_place:company,
+    plays unsafe_relationship:unsafe_company;
 
 Bank sub Company,
     plays bank_account:attached_bank;
@@ -126,6 +128,10 @@ customer_relationship sub relation,
     relates buyer,
     relates company;
 
+unsafe_relationship sub relation,
+    relates unsafe_buyer,
+    relates unsafe_company;
+
 same_place sub relation,
     relates person,
     relates company,
@@ -150,3 +156,14 @@ rule isa_same_place:
         (person: $per, company: $com, located_com: $geo2, located_per: $geo1) isa same_place;
     };
 
+rule is_not_safe:
+    when {
+        $per isa Person;
+        $com isa Company;
+        (buyer: $per, company: $com) isa customer_relationship;
+        not{
+            (person: $per, company: $com, $x, $y) isa same_place;
+        };
+    } then {
+        (unsafe_buyer: $per, unsafe_company: $com) isa unsafe_relationship;
+    };

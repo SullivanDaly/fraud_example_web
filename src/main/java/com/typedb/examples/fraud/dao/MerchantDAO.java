@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,8 +49,8 @@ public class MerchantDAO {
 
   public Set<Merchant> retrieveAll() throws IOException {
     Set<Merchant> merchants = new HashSet<Merchant>();
-    Set<List<String>> merchantsStr = wrapper.read_data("match " + queryGet, args);
-    for (List<String> currentMerchant : merchantsStr) {
+    Set<Hashtable<String, String>> merchantsStr = wrapper.read_data("match " + queryGet, args);
+    for (Map<String, String> currentMerchant : merchantsStr) {
       merchants.add(merchantBuilder(currentMerchant));
     }
     return merchants;
@@ -57,20 +58,16 @@ public class MerchantDAO {
 
   public Hashtable<String, Merchant> retrieveInternal() throws IOException {
     Hashtable<String, Merchant> merchants = new Hashtable<String, Merchant>();
-    Set<List<String>> merchantsStr = wrapper.read_data("match " + queryGet, args);
-    for (List<String> currentMerchant : merchantsStr) {
+    Set<Hashtable<String, String>> merchantsStr = wrapper.read_data("match " + queryGet, args);
+    for (Map<String, String> currentMerchant : merchantsStr) {
       merchants.put(currentMerchant.get(0), merchantBuilder(currentMerchant));
     }
     return merchants;
   }
 
-  public Merchant merchantBuilder(List<String> merchantParam) {
-    return merchantBuilder(merchantParam, 0);
-  }
-
-  public Merchant merchantBuilder(List<String> merchantParam, int beginParam) {
-    Merchant resultMerchant = new Merchant(merchantParam.get(beginParam + 0), merchantParam.get(beginParam + 1),
-        new MerchantCoordinates(merchantParam.get(beginParam + 2), merchantParam.get(beginParam + 3)));
+  public Merchant merchantBuilder(Map<String, String> merchantParam) {
+    Merchant resultMerchant = new Merchant(merchantParam.get("na"), merchantParam.get("comt"),
+        new MerchantCoordinates(merchantParam.get("mlat"), merchantParam.get("mlon")));
     return resultMerchant;
   }
 

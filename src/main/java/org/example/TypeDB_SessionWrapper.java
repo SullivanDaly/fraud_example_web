@@ -11,8 +11,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -54,9 +57,9 @@ public class TypeDB_SessionWrapper {
   }
 
 
-  public Set<List<String>> read_data(String query, List<String> lArg) throws IOException {
+  public Set<Hashtable<String, String>> read_data(String query, List<String> args) throws IOException {
     TypeDBClient client = TypeDB.coreClient(ip_server + ":" + port_server);
-    Set<List<String>> lBank = new HashSet<List<String>>();
+    Set<Hashtable<String, String>> banksResult = new HashSet<Hashtable<String, String>>();
     BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     TypeDBSession session = client.session(database_name, TypeDBSession.Type.DATA);
     TypeDBTransaction readTransaction = session.transaction(TypeDBTransaction.Type.READ,
@@ -66,16 +69,16 @@ public class TypeDB_SessionWrapper {
       Stream<ConceptMap> queryAnswers = readTransaction.query().match(query);
 
       queryAnswers.forEach(queryAnswer -> {
-        List<String> currentList = new ArrayList<String>();
-        for (String arg : lArg) {
-          currentList.add(queryAnswer.get(arg).asAttribute().getValue().toString());
+        Hashtable<String, String> currentArgs = new Hashtable<>();
+        for (String arg : args) {
+          currentArgs.put(arg, queryAnswer.get(arg).asAttribute().getValue().toString());
         }
-        lBank.add(currentList);
+        banksResult.add(currentArgs);
       });
 
       System.out.println("Read DONE");
     }
-    return lBank;
+    return banksResult;
   }
 
 

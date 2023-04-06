@@ -1,9 +1,8 @@
 package com.vaticle;
 
-import com.typedb.examples.fraud.Pair.CardHolder__Merchant;
+import com.typedb.examples.fraud.Pair.CardHolderMerchant;
 import com.typedb.examples.fraud.dao.BankDAO;
 import com.typedb.examples.fraud.dao.CardholderDAO;
-import com.typedb.examples.fraud.dao.GenericDAO;
 import com.typedb.examples.fraud.dao.MerchantDAO;
 import com.typedb.examples.fraud.dao.TransactionDAO;
 import com.typedb.examples.fraud.model.Bank;
@@ -148,10 +147,18 @@ public class HelloGraphQLResource {
 
   @Query
   @Description("test read")
-  public Set<CardHolder__Merchant> getMatchRule() throws IOException {
+  public Set<CardHolderMerchant> getPossibleSafeTransaction() throws IOException {
     TypeDB_SessionWrapper typeDBw = new TypeDB_SessionWrapper();
-    GenericDAO genericDAO = new GenericDAO(typeDBw);
-    return genericDAO.retrieveRule();
+    CardholderDAO cardholderDAO = new CardholderDAO(typeDBw);
+    return cardholderDAO.retrievePossibleSafeTransaction();
+  }
+
+  @Query
+  @Description("test read")
+  public Set<CardHolderMerchant> getUnsafeTransaction() throws IOException {
+    TypeDB_SessionWrapper typeDBw = new TypeDB_SessionWrapper();
+    CardholderDAO cardholderDAO = new CardholderDAO(typeDBw);
+    return cardholderDAO.retrieveUnsafeTransaction();
   }
 
     /*
