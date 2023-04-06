@@ -35,7 +35,7 @@ public class TransactionDAO {
           + "(used_card: $car ,to: $com) isa transaction, has timestamp $time"
           + ", has amount $amoun, has transaction_number $transac;";
 
-  private final List<String> lArg = Stream.of("first", "last", "comp", "amoun",
+  private final List<String> args = Stream.of("first", "last", "comp", "amoun",
           "transac", "time").collect(Collectors.toList());
 
 
@@ -59,29 +59,29 @@ public class TransactionDAO {
     return result;
   }
 
-  public void insert_all(Set<Transaction> lTransaction) throws IOException {
-    Set<String> queryStrs = lTransaction.stream().map(this::getQueryStr)
+  public void insert_all(Set<Transaction> transactions) throws IOException {
+    Set<String> queries = transactions.stream().map(this::getQueryStr)
         .collect(Collectors.toSet());
-    wrapper.load_data(queryStrs);
+    wrapper.load_data(queries);
   }
 
   public Set<Transaction> retrieveAll() throws IOException {
 
     MerchantDAO merchantDAO = new MerchantDAO(wrapper);
-    Hashtable<String, Merchant> hMerchant = merchantDAO.retrieveInternal();
+    Hashtable<String, Merchant> merchants = merchantDAO.retrieveInternal();
     CardholderDAO cardholderDAO = new CardholderDAO(wrapper);
-    Hashtable<String, Cardholder> hCardholder = cardholderDAO.retrieveInternal();
+    Hashtable<String, Cardholder> cardholders = cardholderDAO.retrieveInternal();
 
-    Set<Transaction> sTransaction = new HashSet<Transaction>();
-    Set<List<String>> sTransactionStr = wrapper.read_data(queryGet, lArg);
-    for (List<String> currentStrTransaction : sTransactionStr) {
-      Cardholder tempCardholder = hCardholder.get(
-          currentStrTransaction.get(0) + currentStrTransaction.get(1));
-      Merchant tempMerchant = hMerchant.get(currentStrTransaction.get(2));
-      sTransaction.add(new Transaction(currentStrTransaction.get(3), currentStrTransaction.get(4),
-          currentStrTransaction.get(5), tempMerchant, tempCardholder));
+    Set<Transaction> transactions = new HashSet<Transaction>();
+    Set<List<String>> transactionsStr = wrapper.read_data(queryGet, args);
+    for (List<String> currentTransaction : transactionsStr) {
+      Cardholder tempCardholder = cardholders.get(
+          currentTransaction.get(0) + currentTransaction.get(1));
+      Merchant tempMerchant = merchants.get(currentTransaction.get(2));
+      transactions.add(new Transaction(currentTransaction.get(3), currentTransaction.get(4),
+          currentTransaction.get(5), tempMerchant, tempCardholder));
     }
-    return sTransaction;
+    return transactions;
   }
 }
 

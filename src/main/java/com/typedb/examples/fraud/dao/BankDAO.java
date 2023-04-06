@@ -24,7 +24,7 @@ public class BankDAO {
           "$b isa Bank, has name $na;" +
           "(geo: $geo, identify: $b) isa geolocate;";
 
-  private final List<String> lArg = Stream.of("na", "lat", "lon").collect(
+  private final List<String> args = Stream.of("na", "lat", "lon").collect(
       Collectors.toList());
 
   public BankDAO(TypeDB_SessionWrapper wrapper) {
@@ -40,29 +40,29 @@ public class BankDAO {
     return (result);
   }
 
-  public void insertAll(Set<Bank> lBank) throws IOException {
+  public void insertAll(Set<Bank> bankParam) throws IOException {
 
-    Set<String> queryStrs = lBank.stream().map(this::getQueryStr).collect(Collectors.toSet());
-    wrapper.load_data(queryStrs);
+    Set<String> queries = bankParam.stream().map(this::getQueryStr).collect(Collectors.toSet());
+    wrapper.load_data(queries);
   }
 
   public Set<Bank> retrieveAll() throws IOException {
-    Set<Bank> sBank = new HashSet<Bank>();
-    Set<List<String>> sBankStr = wrapper.read_data(queryGet, lArg);
-    for (List<String> currentStrBank : sBankStr) {
-      sBank.add(new Bank(currentStrBank.get(0),
-          new BankCoordinates(currentStrBank.get(1), currentStrBank.get(2))));
+    Set<Bank> banks = new HashSet<Bank>();
+    Set<List<String>> banksStr = wrapper.read_data(queryGet, args);
+    for (List<String> currentBank : banksStr) {
+      banks.add(new Bank(currentBank.get(0),
+          new BankCoordinates(currentBank.get(1), currentBank.get(2))));
     }
-    return sBank;
+    return banks;
   }
 
   public Hashtable<String, Bank> retrieveInternal() throws IOException {
-    Hashtable<String, Bank> hBank = new Hashtable<String, Bank>();
-    Set<List<String>> sBankStr = wrapper.read_data(queryGet, lArg);
-    for (List<String> currentStrBank : sBankStr) {
-      hBank.put(currentStrBank.get(0), new Bank(currentStrBank.get(0),
-          new BankCoordinates(currentStrBank.get(1), currentStrBank.get(2))));
+    Hashtable<String, Bank> banks = new Hashtable<String, Bank>();
+    Set<List<String>> banksStr = wrapper.read_data(queryGet, args);
+    for (List<String> currentBank : banksStr) {
+      banks.put(currentBank.get(0), new Bank(currentBank.get(0),
+          new BankCoordinates(currentBank.get(1), currentBank.get(2))));
     }
-    return hBank;
+    return banks;
   }
 }

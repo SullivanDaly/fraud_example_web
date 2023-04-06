@@ -24,7 +24,7 @@ public class MerchantDAO {
           + "$com isa Company, has name $na, has company_type $comt;"
           + "(geo: $mgeo, identify: $com) isa geolocate;";
 
-  private final List<String> lArg = Stream.of("na", "comt", "mlat", "mlon")
+  private final List<String> args = Stream.of("na", "comt", "mlat", "mlon")
       .collect(Collectors.toList());
 
   public MerchantDAO(TypeDB_SessionWrapper wrapper) {
@@ -41,45 +41,44 @@ public class MerchantDAO {
     return result;
   }
 
-  public void insert_all(Set<Merchant> lMerchant) throws IOException {
-    Set<String> queryStrs = lMerchant.stream().map(this::getQueryStr).collect(Collectors.toSet());
-    wrapper.load_data(queryStrs);
+  public void insert_all(Set<Merchant> merchants) throws IOException {
+    Set<String> queries = merchants.stream().map(this::getQueryStr).collect(Collectors.toSet());
+    wrapper.load_data(queries);
   }
 
   public Set<Merchant> retrieveAll() throws IOException {
-    Set<Merchant> sMerchant = new HashSet<Merchant>();
-    Set<List<String>> sMerchantStr = wrapper.read_data("match " + queryGet, lArg);
-    for (List<String> currentStrMerchant : sMerchantStr) {
-      sMerchant.add(merchantBuilder(currentStrMerchant));
+    Set<Merchant> merchants = new HashSet<Merchant>();
+    Set<List<String>> merchantsStr = wrapper.read_data("match " + queryGet, args);
+    for (List<String> currentMerchant : merchantsStr) {
+      merchants.add(merchantBuilder(currentMerchant));
     }
-    return sMerchant;
+    return merchants;
   }
 
   public Hashtable<String, Merchant> retrieveInternal() throws IOException {
-    Hashtable<String, Merchant> hMerchant = new Hashtable<String, Merchant>();
-    Set<List<String>> sMerchantStr = wrapper.read_data("match " + queryGet, lArg);
-    for (List<String> currentStrMerchant : sMerchantStr) {
-      hMerchant.put(currentStrMerchant.get(0), merchantBuilder(currentStrMerchant));
+    Hashtable<String, Merchant> merchants = new Hashtable<String, Merchant>();
+    Set<List<String>> merchantsStr = wrapper.read_data("match " + queryGet, args);
+    for (List<String> currentMerchant : merchantsStr) {
+      merchants.put(currentMerchant.get(0), merchantBuilder(currentMerchant));
     }
-    Set<Merchant> sMerchant = new HashSet<Merchant>();
-    return hMerchant;
+    return merchants;
   }
 
-  public Merchant merchantBuilder(List<String> pList) {
-    return merchantBuilder(pList, 0);
+  public Merchant merchantBuilder(List<String> merchantParam) {
+    return merchantBuilder(merchantParam, 0);
   }
 
-  public Merchant merchantBuilder(List<String> pList, int pBegin) {
-    Merchant tmpMerchant = new Merchant(pList.get(pBegin + 0), pList.get(pBegin + 1),
-        new MerchantCoordinates(pList.get(pBegin + 2), pList.get(pBegin + 3)));
-    return tmpMerchant;
+  public Merchant merchantBuilder(List<String> merchantParam, int beginParam) {
+    Merchant resultMerchant = new Merchant(merchantParam.get(beginParam + 0), merchantParam.get(beginParam + 1),
+        new MerchantCoordinates(merchantParam.get(beginParam + 2), merchantParam.get(beginParam + 3)));
+    return resultMerchant;
   }
 
   public String getQueryGet() {
     return queryGet;
   }
 
-  public List<String> getlArg() {
-    return lArg;
+  public List<String> getArgs() {
+    return args;
   }
 }

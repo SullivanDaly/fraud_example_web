@@ -23,22 +23,22 @@ public class GenericDAO {
     CardholderDAO cardholderDAO = new CardholderDAO(wrapper);
     MerchantDAO merchantDAO = new MerchantDAO(wrapper);
     BankDAO bankDAO = new BankDAO(wrapper);
-    Hashtable<String, Bank> hBank = bankDAO.retrieveInternal();
+    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
 
-    List<String> lArgs = cardholderDAO.getlArg();
-    int sizeCut = lArgs.size();
-    lArgs.addAll(merchantDAO.getlArg());
+    List<String> args = cardholderDAO.getArgs();
+    int sizeCut = args.size();
+    args.addAll(merchantDAO.getArgs());
 
-    Set<CardHolder__Merchant> sRule = new HashSet<CardHolder__Merchant>();
-    Set<List<String>> sRuleStr = wrapper.read_data("match " + cardholderDAO.getQueryGet()
-        + merchantDAO.getQueryGet() + queryRule, lArgs);
+    Set<CardHolder__Merchant> rules = new HashSet<CardHolder__Merchant>();
+    Set<List<String>> rulesStr = wrapper.read_data("match " + cardholderDAO.getQueryGet()
+        + merchantDAO.getQueryGet() + queryRule, args);
 
-    for (List<String> currentStrRule : sRuleStr) {
-      sRule.add(new CardHolder__Merchant(cardholderDAO.cardholderBuilder(currentStrRule, hBank),
+    for (List<String> currentStrRule : rulesStr) {
+      rules.add(new CardHolder__Merchant(cardholderDAO.cardholderBuilder(currentStrRule, banks),
           merchantDAO.merchantBuilder(currentStrRule, sizeCut)));
     }
 
-    return sRule;
+    return rules;
   }
 
 }

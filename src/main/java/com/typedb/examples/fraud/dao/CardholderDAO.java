@@ -33,7 +33,7 @@ public class CardholderDAO {
       + "(owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;";
 
 
-  private final List<String> lArg = Stream.of("first", "last", "gen", "job", "birth", "street",
+  private final List<String> args = Stream.of("first", "last", "gen", "job", "birth", "street",
       "city", "state", "zip", "nbcar", "bank", "lat", "lon").collect(Collectors.toList());
 
   public CardholderDAO(TypeDB_SessionWrapper wrapper) {
@@ -59,58 +59,58 @@ public class CardholderDAO {
   }
 
 
-  public void insert_all(Set<Cardholder> lCardholder) throws IOException {
-    Set<String> queryStrs = lCardholder.stream().map(this::getQueryStr).collect(Collectors.toSet());
-    wrapper.load_data(queryStrs);
+  public void insert_all(Set<Cardholder> cardholderParam) throws IOException {
+    Set<String> queries = cardholderParam.stream().map(this::getQueryStr).collect(Collectors.toSet());
+    wrapper.load_data(queries);
   }
 
   public Set<Cardholder> retrieveAll() throws IOException {
     BankDAO bankDAO = new BankDAO(wrapper);
-    Hashtable<String, Bank> hBank = bankDAO.retrieveInternal();
-    Set<Cardholder> sCardholder = new HashSet<Cardholder>();
-    Set<List<String>> sCardholderStr = wrapper.read_data("match " + queryGet, lArg);
-    for (List<String> currentStrCardholder : sCardholderStr) {
-      sCardholder.add(cardholderBuilder(currentStrCardholder, hBank));
+    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
+    Set<Cardholder> cardholders = new HashSet<Cardholder>();
+    Set<List<String>> cardholdersStr = wrapper.read_data("match " + queryGet, args);
+    for (List<String> currentCardholder : cardholdersStr) {
+      cardholders.add(cardholderBuilder(currentCardholder, banks));
     }
-    return sCardholder;
+    return cardholders;
   }
 
   public Hashtable<String, Cardholder> retrieveInternal() throws IOException {
     BankDAO bankDAO = new BankDAO(wrapper);
-    Hashtable<String, Bank> hBank = bankDAO.retrieveInternal();
-    Hashtable<String, Cardholder> hCardholder = new Hashtable<String, Cardholder>();
-    Set<List<String>> sCardholderStr = wrapper.read_data("match " + queryGet, lArg);
-    for (List<String> currentStrCardholder : sCardholderStr) {
-      hCardholder.put(currentStrCardholder.get(0) + currentStrCardholder.get(1),
-          cardholderBuilder(currentStrCardholder, hBank));
+    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
+    Hashtable<String, Cardholder> cardholders = new Hashtable<String, Cardholder>();
+    Set<List<String>> cardholdersStr = wrapper.read_data("match " + queryGet, args);
+    for (List<String> currentCardholder : cardholdersStr) {
+      cardholders.put(currentCardholder.get(0) + currentCardholder.get(1),
+          cardholderBuilder(currentCardholder, banks));
     }
-    return hCardholder;
+    return cardholders;
   }
 
-  public Cardholder cardholderBuilder(List<String> pList, Hashtable<String, Bank> hBank) {
-    return cardholderBuilder(pList, hBank, 0);
+  public Cardholder cardholderBuilder(List<String> cardholdersParam, Hashtable<String, Bank> banksParam) {
+    return cardholderBuilder(cardholdersParam, banksParam, 0);
   }
 
-  public Cardholder cardholderBuilder(List<String> pList, Hashtable<String, Bank> hBank,
-      int pBegin) {
+  public Cardholder cardholderBuilder(List<String> cardholdersParam, Hashtable<String, Bank> banksParam,
+      int beginParam) {
 
-    Address tempAddress = new Address(pList.get(pBegin + 5), pList.get(pBegin + 6),
-        pList.get(pBegin + 7), pList.get(pBegin + 8));
-    CardholderCoordinates tempCoord = new CardholderCoordinates(pList.get(pBegin + 11),
-        pList.get(pBegin + 12));
-    CreditCard tempCard = new CreditCard(pList.get(pBegin + 9), hBank.get(pList.get(pBegin + 10)));
-    Cardholder tmpCardholder = new Cardholder(pList.get(pBegin + 0), pList.get(pBegin + 1),
-        pList.get(pBegin + 2),
-        pList.get(pBegin + 3), pList.get(pBegin + 4), tempAddress, tempCoord, tempCard);
+    Address tempAddress = new Address(cardholdersParam.get(beginParam + 5), cardholdersParam.get(beginParam + 6),
+        cardholdersParam.get(beginParam + 7), cardholdersParam.get(beginParam + 8));
+    CardholderCoordinates tempCoord = new CardholderCoordinates(cardholdersParam.get(beginParam + 11),
+        cardholdersParam.get(beginParam + 12));
+    CreditCard tempCard = new CreditCard(cardholdersParam.get(beginParam + 9), banksParam.get(cardholdersParam.get(beginParam + 10)));
+    Cardholder resultCardholder = new Cardholder(cardholdersParam.get(beginParam + 0), cardholdersParam.get(beginParam + 1),
+        cardholdersParam.get(beginParam + 2),
+        cardholdersParam.get(beginParam + 3), cardholdersParam.get(beginParam + 4), tempAddress, tempCoord, tempCard);
 
-    return tmpCardholder;
+    return resultCardholder;
   }
 
   public String getQueryGet() {
     return queryGet;
   }
 
-  public List<String> getlArg() {
-    return lArg;
+  public List<String> getArgs() {
+    return args;
   }
 }
