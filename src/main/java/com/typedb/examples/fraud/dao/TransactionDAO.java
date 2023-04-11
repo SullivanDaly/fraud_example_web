@@ -1,89 +1,87 @@
 package com.typedb.examples.fraud.dao;
 
-import com.typedb.examples.fraud.model.Cardholder;
-import com.typedb.examples.fraud.model.Merchant;
+import com.typedb.examples.fraud.db.TypeDbSessionWrapper;
 import com.typedb.examples.fraud.model.Transaction;
-import java.io.IOException;
-import java.util.HashSet;
+import com.typedb.examples.fraud.util.Formatter;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.example.TypeDB_SessionWrapper;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 
+@RequestScoped
 public class TransactionDAO {
 
-  private final TypeDB_SessionWrapper wrapper;
+  private static final String PERSON_CARD_MATCH =
+      "match " +
+      "  $cc isa Card, has card_number %s;" +
+      "  $merchant isa Company, has name \"%s\";";
 
-  private final String query1 = "match \n" +
-      "$per isa Person, has first_name \"%s\", has last_name \"%s\";\n" +
-      "$ban isa Bank, has name \"%s\";\n" +
-      "$car isa Card, has card_number %s;\n" +
-      "$com isa Company, has name \"%s\";\n";
+  private static final String INSERT_QUERY_TEMPLATE =
+      "insert " +
+      "  (used_card: $cc ,to: $merchant) isa transaction, has timestamp %s, has amount %s, has transaction_number \"%s\";";
 
-  private final String query2 = "insert \n" +
-      "$r1 (owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;\n" +
-      "$r2 (used_card: $car ,to: $com) isa transaction, has timestamp %s, has amount %s, " +
-      "has transaction_number \"%s\";";
+  private static final String TX_MATCH =
+      "  $cc isa Card, has card_number $ccNum;" +
+      "  $cardholderAcconut (owner: $cardholder, attached_card: $cc, $bank) isa bank_account;" +
+      "  $tx (used_card: $cc ,to: $merchant) isa transaction, has timestamp $txTime, has amount $txAmount, has transaction_number $txNum;";
 
-  private final String queryGet =
-      "match $per isa Person, has first_name $first, has last_name $last;" +
-          "$car isa Card, has card_number $nbcar;" +
-          "$com isa Company, has name $comp;" +
-          "(owner: $per, attached_card: $car, $ban) isa bank_account;" +
-          "(used_card: $car ,to: $com) isa transaction, has timestamp $time" +
-          ", has amount $amoun, has transaction_number $transac;";
+  @Inject
+  TypeDbSessionWrapper db;
 
-  private final List<String> args = Stream.of("first", "last", "comp", "amoun",
-      "transac", "time").collect(Collectors.toList());
-
-
-  public TransactionDAO(TypeDB_SessionWrapper wrapper) {
-    this.wrapper = wrapper;
+  public TransactionDAO(TypeDbSessionWrapper db) {
+    this.db = db;
   }
 
-  private String getQueryStr(Transaction currentTransaction) {
-    String result = query1.formatted(
-        currentTransaction.getCardholder().getPerson_first_name(),
-        currentTransaction.getCardholder().getPerson_last_name(),
-        currentTransaction.getCardholder().getCreditCard().getBank().getBank_name(),
-        currentTransaction.getCardholder().getCreditCard().getCard_number(),
-        currentTransaction.getMerchant().getCompany_name()
-    );
-    result += query2.formatted(
-        currentTransaction.getDate_transaction_transform(),
-        currentTransaction.getAmount(),
-        currentTransaction.getTransaction_number()
-    );
-    return result;
-  }
+  public Set<Transaction> getAll() {
 
-  public void insert_all(Set<Transaction> transactions) throws IOException {
-    Set<String> queries = transactions.stream().map(this::getQueryStr)
-        .collect(Collectors.toSet());
-    wrapper.load_data(queries);
-  }
+    var getQueryStr =
+        "match " + TX_MATCH + CardholderDAO.CARDHOLDER_MATCH + BankDAO.BANK_MATCH + MerchantDAO.MERCHANT_MATCH;
 
-  public Set<Transaction> retrieveAll() throws IOException {
+    var results = db.getAll(getQueryStr);
 
-    MerchantDAO merchantDAO = new MerchantDAO(wrapper);
-    Hashtable<String, Merchant> merchants = merchantDAO.retrieveInternal();
-    CardholderDAO cardholderDAO = new CardholderDAO(wrapper);
-    Hashtable<String, Cardholder> cardholders = cardholderDAO.retrieveInternal();
+    var transactions = results.stream().map(TransactionDAO::fromResult).collect(Collectors.toSet());
 
-    Set<Transaction> transactions = new HashSet<Transaction>();
-    Set<Hashtable<String, String>> transactionsStr = wrapper.read_data(queryGet, args);
-    for (Hashtable<String, String> currentTransaction : transactionsStr) {
-      Cardholder tempCardholder = cardholders.get(
-          currentTransaction.get("first") + currentTransaction.get("last"));
-      Merchant tempMerchant = merchants.get(currentTransaction.get("comp"));
-      transactions.add(new Transaction(currentTransaction.get("amoun"), currentTransaction.get("transac"),
-          currentTransaction.get("time"), tempMerchant, tempCardholder));
-    }
     return transactions;
   }
 
+  public void insertAll(Set<Transaction> transactions) {
 
+    var queries = transactions.stream().map(this::getInsertQueryStr).collect(Collectors.toSet());
+
+    db.insertAll(queries);
+  }
+
+  protected static Transaction fromResult(Hashtable<String, String> result) {
+
+    var merchant = MerchantDAO.fromResult(result);
+    var cardholder = CardholderDAO.fromResult(result);
+
+    var txAmount = result.get("txAmount");
+    var txNum = result.get("txNum");
+    var txTime = result.get("txTime");
+
+    var tx = new Transaction(txAmount, txNum, txTime, merchant, cardholder);
+
+    return tx;
+  }
+
+  private String getInsertQueryStr(Transaction transaction) {
+
+    var match = PERSON_CARD_MATCH.formatted(
+        transaction.getCardholder().getCc().getNumber(),
+        transaction.getMerchant().getName()
+    );
+
+    var insert = INSERT_QUERY_TEMPLATE.formatted(
+        Formatter.formatDateTime(transaction.getTime()),
+        transaction.getAmount(),
+        transaction.getNumber()
+    );
+
+    var insertQuery = match + insert;
+
+    return insertQuery;
+  }
 }
 

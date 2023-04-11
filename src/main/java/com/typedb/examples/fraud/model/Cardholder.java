@@ -7,97 +7,134 @@ import java.util.Objects;
 public class Cardholder {
 
   @CsvBindByName(column = "first")
-  private String person_first_name;
+  private String firstName;
   @CsvBindByName(column = "last")
-  private String person_last_name;
+  private String lastName;
   @CsvBindByName(column = "gender")
   private String gender;
   @CsvBindByName(column = "job")
   private String job;
   @CsvBindByName(column = "dob")
-  private String date_of_birth;
+  private String birthDate;
+
   @CsvRecurse
   private Address address;
   @CsvRecurse
-  private CardholderCoordinates cardholderCoordinates;
+  private CardholderCoordinates coords;
   @CsvRecurse
-  private CreditCard creditCard;
+  private CreditCard cc;
 
-  public Cardholder(String person_first_name, String person_last_name, String gender, String job,
-      String date_of_birth,
-      Address address, CardholderCoordinates cardholderCoordinates, CreditCard creditCard) {
-    this.person_first_name = person_first_name;
-    this.person_last_name = person_last_name;
+  public Cardholder() {}
+
+  public Cardholder(String firstName, String lastName, String gender, String job, String birthDate,
+      Address address, CardholderCoordinates coords, CreditCard cc) {
+
+    this.firstName = firstName;
+    this.lastName = lastName;
     this.gender = gender;
     this.job = job;
-    this.date_of_birth = date_of_birth;
+    this.birthDate = birthDate;
     this.address = address;
-    this.cardholderCoordinates = cardholderCoordinates;
-    this.creditCard = creditCard;
+    this.coords = coords;
+    this.cc = cc;
   }
 
-  public String getPerson_first_name() {
-    return person_first_name;
+  public String getFirstName() {
+    return firstName;
   }
 
-  public String getPerson_last_name() {
-    return person_last_name;
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+
+  public String getLastName() {
+    return lastName;
+  }
+
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
   }
 
   public String getGender() {
     return gender;
   }
 
+  public void setGender(String gender) {
+    this.gender = gender;
+  }
+
   public String getJob() {
     return job;
   }
 
-  public String getDate_of_birth() {
-    return date_of_birth;
+  public void setJob(String job) {
+    this.job = job;
+  }
+
+  public String getBirthDate() {
+    return birthDate;
+  }
+
+  public void setBirthDate(String birthDate) {
+    this.birthDate = birthDate;
   }
 
   public Address getAddress() {
     return address;
   }
 
-  public CardholderCoordinates getCardholderCoordinates() {
-    return cardholderCoordinates;
+  public void setAddress(Address address) {
+    this.address = address;
   }
 
-  public CreditCard getCreditCard() {
-    return creditCard;
+  public CardholderCoordinates getCoords() {
+    return coords;
   }
 
-  @Override
-  public String toString() {
-    return "Cardholder{" +
-        "person_first_name='" + person_first_name + '\'' +
-        ", person_last_name='" + person_last_name + '\'' +
-        ", gender='" + gender + '\'' +
-        ", job='" + job + '\'' +
-        ", date_of_birth='" + date_of_birth + '\'' +
-        ", address=" + address +
-        ", cardholderCoordinates=" + cardholderCoordinates +
-        '}';
+  public void setCoords(CardholderCoordinates coords) {
+    this.coords = coords;
+  }
+
+  public CreditCard getCc() {
+    return cc;
+  }
+
+  public void setCc(CreditCard cc) {
+    this.cc = cc;
   }
 
   @Override
   public boolean equals(Object o) {
+
     if (this == o) {
-      return true;
+        return true;
     }
     if (!(o instanceof Cardholder that)) {
-      return false;
+        return false;
     }
-    return person_first_name.equals(that.person_first_name) && person_last_name.equals(
-        that.person_last_name) &&
-        gender.equals(that.gender) && job.equals(that.job) && date_of_birth.equals(
-        that.date_of_birth) &&
-        address.equals(that.address) && cardholderCoordinates.equals(that.cardholderCoordinates);
+
+    return firstName.equals(that.firstName) && lastName.equals(that.lastName) &&
+        gender.equals(that.gender) && job.equals(that.job) && birthDate.equals(that.birthDate) &&
+        address.equals(that.address) && coords.equals(that.coords);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(person_first_name, person_last_name);
+    return Objects.hash(firstName, lastName);
+  }
+
+  @Override
+  public String toString() {
+
+    return
+        "cardholder {" +
+        "  firstName = '" + firstName + "', " +
+        "  lastName = '" + lastName + "', " +
+        "  gender = '" + gender + "', " +
+        "  job = '" + job + "', " +
+        "  birthDate = '" + birthDate + "', " +
+        "  address = " + address + ", " +
+        "  coords = " + coords +
+        "}";
   }
 }

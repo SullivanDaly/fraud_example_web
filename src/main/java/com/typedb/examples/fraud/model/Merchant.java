@@ -7,54 +7,74 @@ import java.util.Objects;
 public class Merchant {
 
   @CsvBindByName(column = "merchant")
-  private String company_name;
+  private String name;
+
   @CsvBindByName(column = "category")
-  private String company_cat;
+  private String category;
+
   @CsvRecurse
-  private MerchantCoordinates merchantCoordinates;
+  private MerchantCoordinates coords;
 
-  public Merchant(String company_name, String company_cat,
-      MerchantCoordinates merchantCoordinates) {
-    this.company_name = company_name;
-    this.company_cat = company_cat;
-    this.merchantCoordinates = merchantCoordinates;
+  public Merchant() {}
+
+  public Merchant(String name, String category, MerchantCoordinates coords) {
+
+    this.name = name;
+    this.category = category;
+    this.coords = coords;
   }
 
-  public String getCompany_name() {
-    return company_name;
+  public String getName() {
+    return name;
   }
 
-  public String getCompany_cat() {
-    return company_cat;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public MerchantCoordinates getMerchantCoordinates() {
-    return merchantCoordinates;
+  public String getCategory() {
+    return category;
   }
 
-  @Override
-  public String toString() {
-    return "Merchant{" +
-        "company_name='" + company_name + '\'' +
-        ", company_cat='" + company_cat + '\'' +
-        ", merchantCoordinates=" + merchantCoordinates +
-        '}';
+  public void setCategory(String category) {
+    this.category = category;
+  }
+
+  public MerchantCoordinates getCoords() {
+    return coords;
+  }
+
+  public void setCoords(MerchantCoordinates coords) {
+    this.coords = coords;
   }
 
   @Override
   public boolean equals(Object o) {
+
     if (this == o) {
-      return true;
+        return true;
     }
     if (!(o instanceof Merchant merchant)) {
-      return false;
+        return false;
     }
-    return company_name.equals(merchant.company_name) && company_cat.equals(merchant.company_cat) &&
-        merchantCoordinates.equals(merchant.merchantCoordinates);
+
+    return name.equals(merchant.name) && category.equals(merchant.category) &&
+        coords.equals(merchant.coords);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(company_name, company_cat);
+    return Objects.hash(name, category);
+  }
+
+  @Override
+  public String toString() {
+
+    return
+        "merchant {" +
+        "  name = '" + name + "', " +
+        "  category = '" + category + "', " +
+        "  coords = " + coords +
+        "}";
   }
 }

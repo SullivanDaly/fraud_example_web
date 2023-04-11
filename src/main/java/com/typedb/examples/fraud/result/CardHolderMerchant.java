@@ -1,4 +1,4 @@
-package com.typedb.examples.fraud.Pair;
+package com.typedb.examples.fraud.result;
 
 import com.typedb.examples.fraud.model.Cardholder;
 import com.typedb.examples.fraud.model.Merchant;
@@ -6,8 +6,8 @@ import java.util.Objects;
 
 public class CardHolderMerchant {
 
-  private final Cardholder cardholder;
-  private final Merchant merchant;
+  private Cardholder cardholder;
+  private Merchant merchant;
 
   public CardHolderMerchant(Cardholder cardholder, Merchant merchant) {
     this.cardholder = cardholder;
@@ -24,12 +24,12 @@ public class CardHolderMerchant {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CardHolderMerchant that)) {
-      return false;
-    }
+      if (this == o) {
+          return true;
+      }
+      if (!(o instanceof CardHolderMerchant that)) {
+          return false;
+      }
     return cardholder.equals(that.cardholder) && merchant.equals(that.merchant);
   }
 

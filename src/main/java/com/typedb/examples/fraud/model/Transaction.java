@@ -8,64 +8,87 @@ public class Transaction {
 
   @CsvBindByName(column = "amt")
   private String amount;
+
   @CsvBindByName(column = "trans_num")
-  private String transaction_number;
+  private String number;
+
   @CsvBindByName(column = "trans_date_trans_time")
-  private String date_transaction;
+  private String time;
+
   @CsvRecurse
   private Merchant merchant;
+
   @CsvRecurse
   private Cardholder cardholder;
 
-  public Transaction(String amount, String transaction_number, String date_transaction,
+  public Transaction() {}
+
+  public Transaction(String amount, String number, String time,
       Merchant merchant, Cardholder cardholder) {
+
     this.amount = amount;
-    this.transaction_number = transaction_number;
-    this.date_transaction = date_transaction;
+    this.number = number;
+    this.time = time;
     this.merchant = merchant;
     this.cardholder = cardholder;
-  }
-
-  public String getDate_transaction_transform() {
-    String[] tmp = date_transaction.split(" ");
-    return tmp[0] + "T" + tmp[1];
-  }
-
-  public String getDate_transaction() {
-    return date_transaction;
   }
 
   public String getAmount() {
     return amount;
   }
 
-  public String getTransaction_number() {
-    return transaction_number;
+  public void setAmount(String amount) {
+    this.amount = amount;
+  }
+
+  public String getNumber() {
+    return number;
+  }
+
+  public void setNumber(String number) {
+    this.number = number;
+  }
+
+  public String getTime() {
+    return time;
+  }
+
+  public void setTime(String time) {
+    this.time = time;
   }
 
   public Merchant getMerchant() {
     return merchant;
   }
 
+  public void setMerchant(Merchant merchant) {
+    this.merchant = merchant;
+  }
+
   public Cardholder getCardholder() {
     return cardholder;
   }
 
+  public void setCardholder(Cardholder cardholder) {
+    this.cardholder = cardholder;
+  }
+
   @Override
   public boolean equals(Object o) {
+
     if (this == o) {
-      return true;
+        return true;
     }
     if (!(o instanceof Transaction that)) {
-      return false;
+        return false;
     }
-    return amount.equals(that.amount) && transaction_number.equals(that.transaction_number) &&
-        date_transaction.equals(that.date_transaction) && merchant.equals(that.merchant) &&
-        cardholder.equals(that.cardholder);
+
+    return amount.equals(that.amount) && number.equals(that.number) && time.equals(that.time) &&
+        merchant.equals(that.merchant) && cardholder.equals(that.cardholder);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(amount, transaction_number, date_transaction, merchant, cardholder);
+    return Objects.hash(amount, number, time, merchant, cardholder);
   }
 }

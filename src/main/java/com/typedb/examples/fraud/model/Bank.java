@@ -4,43 +4,58 @@ import java.util.Objects;
 
 public class Bank {
 
-  private String bank_name;
-  private BankCoordinates bankCoordinates;
+  private String name;
+  private BankCoordinates coords;
 
-  public Bank(String bank_name, BankCoordinates bankCoordinates) {
-    this.bank_name = bank_name;
-    this.bankCoordinates = bankCoordinates;
+  public Bank() {}
+
+  public Bank(String name, BankCoordinates coords) {
+
+    this.name = name;
+    this.coords = coords;
   }
 
-  public String getBank_name() {
-    return bank_name;
+  public String getName() {
+    return name;
   }
 
-  public BankCoordinates getBankCoordinates() {
-    return bankCoordinates;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  @Override
-  public String toString() {
-    return "Bank{" +
-        "bank_name='" + bank_name + '\'' +
-        ", bankCoordinates=" + bankCoordinates +
-        '}';
+  public BankCoordinates getCoords() {
+    return coords;
+  }
+
+  public void setCoords(BankCoordinates coords) {
+    this.coords = coords;
   }
 
   @Override
   public boolean equals(Object o) {
+
     if (this == o) {
       return true;
     }
     if (!(o instanceof Bank bank)) {
       return false;
     }
-    return bank_name.equals(bank.bank_name) && bankCoordinates.equals(bank.bankCoordinates);
+
+    return name.equals(bank.name) && coords.equals(bank.coords);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(bank_name, bankCoordinates);
+    return Objects.hash(name, coords);
+  }
+
+  @Override
+  public String toString() {
+
+    return
+        "bank {" +
+        "  name = '" + name + "', " +
+        "  coords = " + coords +
+        "}";
   }
 }

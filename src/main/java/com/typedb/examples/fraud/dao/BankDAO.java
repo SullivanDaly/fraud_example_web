@@ -1,72 +1,67 @@
 package com.typedb.examples.fraud.dao;
 
+import com.typedb.examples.fraud.db.TypeDbSessionWrapper;
 import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.BankCoordinates;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.example.TypeDB_SessionWrapper;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 
+@RequestScoped
 public class BankDAO {
 
-  private final TypeDB_SessionWrapper wrapper;
-  private final String queryInsert = "insert \n" +
-      "$ban isa Bank, has name \"%s\", has company_type \"Bank\"; \n" +
-      "$gcb isa Geo_coordinate, has latitude %s, has longitude %s;\n" +
-      "$rel(geo: $gcb, identify: $ban) isa geolocate;";
+  private static final String INSERT_QUERY_TEMPLATE =
+      "insert " +
+      "  $bank isa Bank, has name \"%s\", has company_type \"Bank\";" +
+      "  $bankCoords isa Geo_coordinate, has latitude %s, has longitude %s;" +
+      "  $bankGeo (geo: $bankCoords, identify: $bank) isa geolocate;";
 
-  private final String queryGet = "match" +
-      "$geo isa Geo_coordinate, has longitude $lon, has latitude $lat;" +
-      "$b isa Bank, has name $na;" +
-      "(geo: $geo, identify: $b) isa geolocate;";
+  protected static final String BANK_MATCH =
+      "  $bank isa Bank, has name $bankName;" +
+      "  $bankCoords isa Geo_coordinate, has latitude $bankLat, has longitude $bankLon;" +
+      "  $bankGeo (geo: $bankCoords, identify: $bank) isa geolocate;";
 
-  private final List<String> args = Stream.of("na", "lat", "lon").collect(
-      Collectors.toList());
+  @Inject
+  TypeDbSessionWrapper db;
 
-  public BankDAO(TypeDB_SessionWrapper wrapper) {
-    this.wrapper = wrapper;
+  public Set<Bank> getAll() {
+
+    var results = db.getAll("match " + BANK_MATCH);
+
+    var banks = results.stream().map(BankDAO::fromResult).collect(Collectors.toSet());
+
+    return banks;
   }
 
-  private String getQueryStr(Bank currentBank) {
-    String result = queryInsert.formatted(
-        currentBank.getBank_name(),
-        currentBank.getBankCoordinates().getLatitude(),
-        currentBank.getBankCoordinates().getLongitude()
+  public void insertAll(Set<Bank> banks) {
+
+    var queries = banks.stream().map(this::getInsertQueryStr).collect(Collectors.toSet());
+
+    db.insertAll(queries);
+  }
+
+  protected static Bank fromResult(Hashtable<String, String> result) {
+
+    var lat = result.get("bankLat");
+    var lon = result.get("bankLon");
+
+    var coords = new BankCoordinates(lat, lon);
+
+    var bank = new Bank(result.get("bankName"), coords);
+
+    return bank;
+  }
+
+  private String getInsertQueryStr(Bank bank) {
+
+    var insertQueryStr = INSERT_QUERY_TEMPLATE.formatted(
+        bank.getName(),
+        bank.getCoords().getLatitude(),
+        bank.getCoords().getLongitude()
     );
-    return (result);
-  }
 
-  public void insertAll(Set<Bank> bankParam) throws IOException {
-
-    Set<String> queries = bankParam.stream().map(this::getQueryStr).collect(Collectors.toSet());
-    wrapper.load_data(queries);
-  }
-
-  public Set<Bank> retrieveAll() throws IOException {
-    Set<Bank> banks = new HashSet<Bank>();
-    Set<Hashtable<String, String>> banksStr = wrapper.read_data(queryGet, args);
-    for (Hashtable<String, String> currentBank : banksStr) {
-      banks.add(bankBuilder(currentBank));
-    }
-    return banks;
-  }
-
-  public Hashtable<String, Bank> retrieveInternal() throws IOException {
-    Hashtable<String, Bank> banks = new Hashtable<String, Bank>();
-    Set<Hashtable<String, String>> banksStr = wrapper.read_data(queryGet, args);
-    for (Hashtable<String, String> currentBank : banksStr) {
-      banks.put(currentBank.get("na"), bankBuilder(currentBank));
-    }
-    return banks;
-  }
-
-  public Bank bankBuilder(Hashtable<String, String> bankParam){
-    Bank bankResult = new Bank(bankParam.get("na"),
-          new BankCoordinates(bankParam.get("lat"), bankParam.get("lon")));
-    return bankResult;
+    return insertQueryStr;
   }
 }

@@ -1,81 +1,64 @@
 package com.typedb.examples.fraud.dao;
 
+import com.typedb.examples.fraud.db.TypeDbSessionWrapper;
 import com.typedb.examples.fraud.model.Merchant;
-import com.typedb.examples.fraud.model.MerchantCoordinates;
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.example.TypeDB_SessionWrapper;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 
+@RequestScoped
 public class MerchantDAO {
 
-  private final TypeDB_SessionWrapper wrapper;
-  private final String queryInsert = "insert \n" +
-      "$gcc isa Geo_coordinate, has longitude %s, has latitude %s;\n" +
-      "$com isa Company, has name \"%s\", has company_type \"%s\";\n" +
-      "$rel(geo: $gcc, identify: $com) isa geolocate;";
+  private static final String INSERT_QUERY_TEMPLATE =
+      "insert " +
+      "  $merchant isa Company, has name \"%s\", has company_type \"%s\";" +
+      "  $merchantCoords isa Geo_coordinate, has latitude %s, has longitude %s;" +
+      "  $merchantGeo (geo: $merchantCoords, identify: $merchant) isa geolocate;";
 
-  private final String queryGet =
-      "$mgeo isa Geo_coordinate, has longitude $mlon, has latitude $mlat;" +
-          "$com isa Company, has name $na, has company_type $comt;" +
-          "(geo: $mgeo, identify: $com) isa geolocate;";
+  protected static final String MERCHANT_MATCH =
+      "  $merchant isa Company, has name $merchantName, has company_type $merchantType;" +
+      "  $merchantCoords isa Geo_coordinate, has latitude $merchantLat, has longitude $merchantLon;" +
+      "  $merchantGeo (geo: $merchantCoords, identify: $merchant) isa geolocate;";
 
-  private final List<String> args = Stream.of("na", "comt", "mlat", "mlon")
-      .collect(Collectors.toList());
+  @Inject
+  TypeDbSessionWrapper db;
 
-  public MerchantDAO(TypeDB_SessionWrapper wrapper) {
-    this.wrapper = wrapper;
+  public Set<Merchant> getAll() {
+
+    var results = db.getAll("match " + MERCHANT_MATCH);
+
+    var merchants = results.stream().map(MerchantDAO::fromResult).collect(Collectors.toSet());
+
+    return merchants;
   }
 
-  private String getQueryStr(Merchant currentMerchant) {
-    String result = queryInsert.formatted(
-        currentMerchant.getMerchantCoordinates().getLongitude(),
-        currentMerchant.getMerchantCoordinates().getLatitude(),
-        currentMerchant.getCompany_name(),
-        currentMerchant.getCompany_cat()
+  public void insertAll(Set<Merchant> merchants) {
+
+    var queries = merchants.stream().map(this::getInsertQueryStr).collect(Collectors.toSet());
+
+    db.insertAll(queries);
+  }
+
+  protected static Merchant fromResult(Hashtable<String, String> result) {
+
+    var coords = MerchantCoordsDAO.fromResult(result);
+
+    var merchant = new Merchant(result.get("merchantName"), result.get("merchantType"), coords);
+
+    return merchant;
+  }
+
+  private String getInsertQueryStr(Merchant merchant) {
+
+    var insertQueryStr = INSERT_QUERY_TEMPLATE.formatted(
+        merchant.getName(),
+        merchant.getCategory(),
+        merchant.getCoords().getLatitude(),
+        merchant.getCoords().getLongitude()
     );
-    return result;
-  }
 
-  public void insert_all(Set<Merchant> merchants) throws IOException {
-    Set<String> queries = merchants.stream().map(this::getQueryStr).collect(Collectors.toSet());
-    wrapper.load_data(queries);
-  }
-
-  public Set<Merchant> retrieveAll() throws IOException {
-    Set<Merchant> merchants = new HashSet<Merchant>();
-    Set<Hashtable<String, String>> merchantsStr = wrapper.read_data("match " + queryGet, args);
-    for (Map<String, String> currentMerchant : merchantsStr) {
-      merchants.add(merchantBuilder(currentMerchant));
-    }
-    return merchants;
-  }
-
-  public Hashtable<String, Merchant> retrieveInternal() throws IOException {
-    Hashtable<String, Merchant> merchants = new Hashtable<String, Merchant>();
-    Set<Hashtable<String, String>> merchantsStr = wrapper.read_data("match " + queryGet, args);
-    for (Map<String, String> currentMerchant : merchantsStr) {
-      merchants.put(currentMerchant.get(0), merchantBuilder(currentMerchant));
-    }
-    return merchants;
-  }
-
-  public Merchant merchantBuilder(Map<String, String> merchantParam) {
-    Merchant resultMerchant = new Merchant(merchantParam.get("na"), merchantParam.get("comt"),
-        new MerchantCoordinates(merchantParam.get("mlat"), merchantParam.get("mlon")));
-    return resultMerchant;
-  }
-
-  public String getQueryGet() {
-    return queryGet;
-  }
-
-  public List<String> getArgs() {
-    return args;
+    return insertQueryStr;
   }
 }

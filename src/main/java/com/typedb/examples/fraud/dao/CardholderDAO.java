@@ -1,161 +1,136 @@
 package com.typedb.examples.fraud.dao;
 
-import com.typedb.examples.fraud.Pair.CardHolderMerchant;
-import com.typedb.examples.fraud.model.Address;
-import com.typedb.examples.fraud.model.Bank;
+import com.typedb.examples.fraud.db.TypeDbSessionWrapper;
 import com.typedb.examples.fraud.model.Cardholder;
-import com.typedb.examples.fraud.model.CardholderCoordinates;
-import com.typedb.examples.fraud.model.CreditCard;
-import java.io.IOException;
-import java.util.HashSet;
+import com.typedb.examples.fraud.result.CardHolderMerchant;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.example.TypeDB_SessionWrapper;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 
+@RequestScoped
 public class CardholderDAO {
 
-  private final TypeDB_SessionWrapper wrapper;
-  private final String queryInsert = "insert\n" +
-      "$gcp isa Geo_coordinate, has longitude %s, has latitude %s;\n" +
-      "$add isa Address, has street \"%s\", has city \"%s\", has state \"%s\", has zip %s;\n" +
-      "$per isa Person, has first_name \"%s\", has last_name \"%s\", has gender \"%s\", has job \"%s\", has date_of_birth %s;\n" +
-      "$car isa Card, has card_number %s;" +
-      "$r3(location: $add, geo: $gcp, identify: $per) isa locate;\n";
+  private static final String INSERT_QUERY_TEMPLATE =
+      "match " +
+      "  $bank isa Bank, has name \"%s\";" +
+      "insert " +
+      "  $cardholderCoords isa Geo_coordinate, has latitude %s, has longitude %s;" +
+      "  $cardholderAddr isa Address, has street \"%s\", has city \"%s\", has state \"%s\", has zip %s;" +
+      "  $cardholder isa Person, has first_name \"%s\", has last_name \"%s\", has gender \"%s\", has job \"%s\", has date_of_birth %s;" +
+      "  $cardholderLoc (location: $cardholderAddr, geo: $cardholderCoords, identify: $cardholder) isa locate;" +
+      "  $cardholderAccount (owner: $cardholder, attached_card: $cc, attached_bank: $bank) isa bank_account;" +
+      "  $cc isa Card, has card_number %s;";
 
-  private final String queryGet =
-      "$geo isa Geo_coordinate, has longitude $lon, has latitude $lat;" +
-          "$add isa Address, has street $street, has city $city, has state $state, has zip $zip;" +
-          "$per isa Person, has first_name $first, has last_name $last, has gender $gen, has job $job, has date_of_birth $birth;" +
-          "$car isa Card, has card_number $nbcar;" +
-          "$ban isa Bank, has name $bank;" +
-          "(location: $add, geo: $geo, identify: $per) isa locate;" +
-          "(owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;";
+  private static final String SAFE_TX_MATCH =
+      "  (person: $cardholder, merchant: $merchant) isa same_place;";
 
-  private final String querySafe = "(person: $per, company: $com, $geo1, $geo2) isa same_place;";
+  private static final String UNSAFE_TX_MATCH =
+      "  (person: $cardholder, marchant: $merchant) isa unsafe_relationship";
 
-  private final String queryUnsafe = "(person: $per, company: $com) isa unsafe_relationship";
+  protected static final String CARDHOLDER_MATCH =
+      "  $cardholderCoords isa Geo_coordinate, has latitude $cardholderLat, has longitude $cardholderLon;" +
+      "  $cardholderAddr isa Address, has street $street, has city $city, has state $state, has zip $zip;" +
+      "  $cardholder isa Person, has first_name $firstName, has last_name $lastName, has gender $gender, has job $job, has date_of_birth $birthDate;" +
+      "  $cardholderLoc (location: $cardholderAddr, geo: $cardholderCoords, identify: $cardholder) isa locate;" +
+      "  $cc isa Card, has card_number $ccNum;" +
+      "  $cardholderAccount (owner: $cardholder, attached_card: $cc, attached_bank: $bank) isa bank_account;";
 
-  private final List<String> args = Stream.of("first", "last", "gen", "job", "birth", "street",
-      "city", "state", "zip", "nbcar", "bank", "lat", "lon").collect(Collectors.toList());
+  @Inject
+  TypeDbSessionWrapper db;
 
+  public Set<Cardholder> getAll() {
 
-  public CardholderDAO(TypeDB_SessionWrapper wrapper) {
-    this.wrapper = wrapper;
+    var getQueryStr = "match " + CARDHOLDER_MATCH + BankDAO.BANK_MATCH;
+
+    var results = db.getAll(getQueryStr);
+
+    var cardholders = results.stream().map(CardholderDAO::fromResult).collect(Collectors.toSet());
+
+    return cardholders;
   }
 
-  private String getQueryStr(Cardholder currentCardholder) {
-    String result = queryInsert.formatted(
-        currentCardholder.getCardholderCoordinates().getLongitude(),
-        currentCardholder.getCardholderCoordinates().getLatitude(),
-        currentCardholder.getAddress().getStreet(),
-        currentCardholder.getAddress().getCity(),
-        currentCardholder.getAddress().getState(),
-        currentCardholder.getAddress().getZip(),
-        currentCardholder.getPerson_first_name(),
-        currentCardholder.getPerson_last_name(),
-        currentCardholder.getGender(),
-        currentCardholder.getJob(),
-        currentCardholder.getDate_of_birth(),
-        currentCardholder.getCreditCard().getCard_number()
+  public Set<CardHolderMerchant> getWithMerchants(boolean safeTx) {
+
+    var getQueryStr = "match " + CARDHOLDER_MATCH + BankDAO.BANK_MATCH + MerchantDAO.MERCHANT_MATCH;
+
+    if (safeTx) {
+      getQueryStr += SAFE_TX_MATCH;
+    }
+    else {
+      getQueryStr += UNSAFE_TX_MATCH;
+    }
+
+    var results = db.getAll(getQueryStr);
+
+    var cardholderMerchants = results.stream().map(CardholderDAO::fromResultWithMerchant).collect(Collectors.toSet());
+
+    return cardholderMerchants;
+  }
+
+  public Set<CardHolderMerchant> getWithSafeMerchants() {
+
+    return getWithMerchants(true);
+  }
+
+  public Set<CardHolderMerchant> getWithUnsafeMerchants() {
+
+    return getWithMerchants(false);
+  }
+
+  public void insertAll(Set<Cardholder> cardholders) {
+
+    var queries = cardholders.stream().map(this::getInsertQueryStr).collect(Collectors.toSet());
+
+    db.insertAll(queries);
+  }
+
+  protected static Cardholder fromResult(Hashtable<String, String> result) {
+
+    var cc = CreditCardDAO.fromResult(result);
+    var coords = CardholderCoordsDAO.fromResult(result);
+    var addr = AddressDAO.fromResult(result);
+
+    var firstName = result.get("firstName");
+    var lastName = result.get("lastName");
+    var gender = result.get("gender");
+    var job = result.get("job");
+    var birthDate = result.get("birthDate");
+
+    var cardholder = new Cardholder(firstName, lastName, gender, job, birthDate, addr, coords, cc);
+
+    return cardholder;
+  }
+
+  protected static CardHolderMerchant fromResultWithMerchant(Hashtable<String, String> result) {
+
+    var cardholder = fromResult(result);
+    var merchant = MerchantDAO.fromResult(result);
+
+    var cardholderMerchant = new CardHolderMerchant(cardholder, merchant);
+
+    return cardholderMerchant;
+  }
+
+  private String getInsertQueryStr(Cardholder cardholder) {
+
+    var insertQueryStr = INSERT_QUERY_TEMPLATE.formatted(
+        cardholder.getCc().getBank().getName(),
+        cardholder.getCoords().getLongitude(),
+        cardholder.getCoords().getLatitude(),
+        cardholder.getAddress().getStreet(),
+        cardholder.getAddress().getCity(),
+        cardholder.getAddress().getState(),
+        cardholder.getAddress().getZip(),
+        cardholder.getFirstName(),
+        cardholder.getLastName(),
+        cardholder.getGender(),
+        cardholder.getJob(),
+        cardholder.getBirthDate(),
+        cardholder.getCc().getNumber()
     );
-    return (result);
-  }
 
-
-  public void insert_all(Set<Cardholder> cardholderParam) throws IOException {
-    Set<String> queries = cardholderParam.stream().map(this::getQueryStr)
-        .collect(Collectors.toSet());
-    wrapper.load_data(queries);
-  }
-
-  public Set<Cardholder> retrieveAll() throws IOException {
-    BankDAO bankDAO = new BankDAO(wrapper);
-    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
-    Set<Cardholder> cardholders = new HashSet<Cardholder>();
-    Set<Hashtable<String, String>> cardholdersStr = wrapper.read_data("match " + queryGet, args);
-    for (Hashtable<String, String> currentCardholder : cardholdersStr) {
-      cardholders.add(cardholderBuilder(currentCardholder, banks));
-    }
-    return cardholders;
-  }
-
-  public Hashtable<String, Cardholder> retrieveInternal() throws IOException {
-    BankDAO bankDAO = new BankDAO(wrapper);
-    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
-    Hashtable<String, Cardholder> cardholders = new Hashtable<String, Cardholder>();
-    Set<Hashtable<String, String>> cardholdersStr = wrapper.read_data("match " + queryGet, args);
-    for (Hashtable<String, String> currentCardholder : cardholdersStr) {
-      cardholders.put(currentCardholder.get(0) + currentCardholder.get(1),
-          cardholderBuilder(currentCardholder, banks));
-    }
-    return cardholders;
-  }
-
-  public Cardholder cardholderBuilder(Hashtable<String, String> cardholdersParam,
-      Hashtable<String, Bank> banksParam) {
-    Address tempAddress = new Address(cardholdersParam.get("street"), cardholdersParam.get("city"),
-        cardholdersParam.get("state"), cardholdersParam.get("zip"));
-    CardholderCoordinates tempCoord = new CardholderCoordinates(cardholdersParam.get("lat"),
-        cardholdersParam.get("lon"));
-    CreditCard tempCard = new CreditCard(cardholdersParam.get("nbcar"),
-        banksParam.get(cardholdersParam.get("bank")));
-    Cardholder resultCardholder = new Cardholder(cardholdersParam.get("first"),
-        cardholdersParam.get("last"),
-        cardholdersParam.get("gen"),
-        cardholdersParam.get("job"), cardholdersParam.get("birth"), tempAddress, tempCoord,
-        tempCard);
-
-    return resultCardholder;
-  }
-
-  public Set<CardHolderMerchant> retrievePossibleSafeTransaction() throws IOException {
-    MerchantDAO merchantDAO = new MerchantDAO(wrapper);
-    BankDAO bankDAO = new BankDAO(wrapper);
-    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
-
-    List<String> args = this.args;
-    args.addAll(merchantDAO.getArgs());
-
-    Set<CardHolderMerchant> rules = new HashSet<CardHolderMerchant>();
-    Set<Hashtable<String, String>> rulesStr = wrapper.read_data("match " + this.getQueryGet()
-        + merchantDAO.getQueryGet() + querySafe, args);
-
-    for (Hashtable<String, String> currentStrRule : rulesStr) {
-      rules.add(new CardHolderMerchant(cardholderBuilder(currentStrRule, banks),
-          merchantDAO.merchantBuilder(currentStrRule)));
-    }
-
-    return rules;
-  }
-
-  public Set<CardHolderMerchant> retrieveUnsafeTransaction() throws IOException {
-    MerchantDAO merchantDAO = new MerchantDAO(wrapper);
-    BankDAO bankDAO = new BankDAO(wrapper);
-    Hashtable<String, Bank> banks = bankDAO.retrieveInternal();
-
-    List<String> args = this.args;
-    args.addAll(merchantDAO.getArgs());
-
-    Set<CardHolderMerchant> rules = new HashSet<CardHolderMerchant>();
-    Set<Hashtable<String, String>> rulesStr = wrapper.read_data("match " + this.getQueryGet()
-        + merchantDAO.getQueryGet() + queryUnsafe, args);
-
-    for (Hashtable<String, String> currentStrRule : rulesStr) {
-      rules.add(new CardHolderMerchant(cardholderBuilder(currentStrRule, banks),
-          merchantDAO.merchantBuilder(currentStrRule)));
-    }
-
-    return rules;
-  }
-
-  public String getQueryGet() {
-    return queryGet;
-  }
-
-  public List<String> getArgs() {
-    return args;
+    return insertQueryStr;
   }
 }
