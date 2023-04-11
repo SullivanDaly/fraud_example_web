@@ -15,15 +15,15 @@ import org.example.TypeDB_SessionWrapper;
 public class MerchantDAO {
 
   private final TypeDB_SessionWrapper wrapper;
-  private final String queryInsert = "insert \n"
-      + "$gcc isa Geo_coordinate, has longitude %s, has latitude %s;\n"
-      + "$com isa Company, has name \"%s\", has company_type \"%s\";\n"
-      + "$rel(geo: $gcc, identify: $com) isa geolocate;";
+  private final String queryInsert = "insert \n" +
+      "$gcc isa Geo_coordinate, has longitude %s, has latitude %s;\n" +
+      "$com isa Company, has name \"%s\", has company_type \"%s\";\n" +
+      "$rel(geo: $gcc, identify: $com) isa geolocate;";
 
   private final String queryGet =
-      "$mgeo isa Geo_coordinate, has longitude $mlon, has latitude $mlat;"
-          + "$com isa Company, has name $na, has company_type $comt;"
-          + "(geo: $mgeo, identify: $com) isa geolocate;";
+      "$mgeo isa Geo_coordinate, has longitude $mlon, has latitude $mlat;" +
+          "$com isa Company, has name $na, has company_type $comt;" +
+          "(geo: $mgeo, identify: $com) isa geolocate;";
 
   private final List<String> args = Stream.of("na", "comt", "mlat", "mlon")
       .collect(Collectors.toList());

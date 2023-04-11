@@ -37,12 +37,12 @@ public class CreditCard {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof CreditCard that)) {
-          return false;
-      }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreditCard that)) {
+      return false;
+    }
     return card_number.equals(that.card_number) && bank.equals(that.bank);
   }
 

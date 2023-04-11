@@ -6,16 +6,11 @@ import com.vaticle.typedb.client.api.TypeDBOptions;
 import com.vaticle.typedb.client.api.TypeDBSession;
 import com.vaticle.typedb.client.api.TypeDBTransaction;
 import com.vaticle.typedb.client.api.answer.ConceptMap;
-import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -25,8 +20,7 @@ public class TypeDB_SessionWrapper {
   private final String port_server;
   private final String database_name;
 
-  public TypeDB_SessionWrapper(String ip_server, String port_server, String database_name)
-      throws FileNotFoundException {
+  public TypeDB_SessionWrapper(String ip_server, String port_server, String database_name) {
     this.ip_server = ip_server;
     this.port_server = port_server;
     this.database_name = database_name;
@@ -38,7 +32,7 @@ public class TypeDB_SessionWrapper {
     this.database_name = "test_FRAUD";
   }
 
-  public void load_data(Set<String> lInsert) throws IOException {
+  public void load_data(Set<String> lInsert) {
     TypeDBClient client = TypeDB.coreClient(ip_server + ":" + port_server);
     TypeDBSession session = client.session(database_name, TypeDBSession.Type.DATA);
     try (TypeDBTransaction writeTransaction = session.transaction(
@@ -57,10 +51,9 @@ public class TypeDB_SessionWrapper {
   }
 
 
-  public Set<Hashtable<String, String>> read_data(String query, List<String> args) throws IOException {
+  public Set<Hashtable<String, String>> read_data(String query, List<String> args) {
     TypeDBClient client = TypeDB.coreClient(ip_server + ":" + port_server);
     Set<Hashtable<String, String>> banksResult = new HashSet<Hashtable<String, String>>();
-    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     TypeDBSession session = client.session(database_name, TypeDBSession.Type.DATA);
     TypeDBTransaction readTransaction = session.transaction(TypeDBTransaction.Type.READ,
         TypeDBOptions.core().infer(true));

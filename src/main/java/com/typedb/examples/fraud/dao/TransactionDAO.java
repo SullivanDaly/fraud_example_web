@@ -16,27 +16,27 @@ public class TransactionDAO {
 
   private final TypeDB_SessionWrapper wrapper;
 
-  private final String query1 = "match \n"
-      + "$per isa Person, has first_name \"%s\", has last_name \"%s\";\n"
-      + "$ban isa Bank, has name \"%s\";\n"
-      + "$car isa Card, has card_number %s;\n"
-      + "$com isa Company, has name \"%s\";\n";
+  private final String query1 = "match \n" +
+      "$per isa Person, has first_name \"%s\", has last_name \"%s\";\n" +
+      "$ban isa Bank, has name \"%s\";\n" +
+      "$car isa Card, has card_number %s;\n" +
+      "$com isa Company, has name \"%s\";\n";
 
-  private final String query2 = "insert \n"
-      + "$r1 (owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;\n"
-      + "$r2 (used_card: $car ,to: $com) isa transaction, has timestamp %s, has amount %s, "
-      + "has transaction_number \"%s\";";
+  private final String query2 = "insert \n" +
+      "$r1 (owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;\n" +
+      "$r2 (used_card: $car ,to: $com) isa transaction, has timestamp %s, has amount %s, " +
+      "has transaction_number \"%s\";";
 
   private final String queryGet =
-      "match $per isa Person, has first_name $first, has last_name $last;"
-          + "$car isa Card, has card_number $nbcar;"
-          + "$com isa Company, has name $comp;"
-          + "(owner: $per, attached_card: $car, $ban) isa bank_account;"
-          + "(used_card: $car ,to: $com) isa transaction, has timestamp $time"
-          + ", has amount $amoun, has transaction_number $transac;";
+      "match $per isa Person, has first_name $first, has last_name $last;" +
+          "$car isa Card, has card_number $nbcar;" +
+          "$com isa Company, has name $comp;" +
+          "(owner: $per, attached_card: $car, $ban) isa bank_account;" +
+          "(used_card: $car ,to: $com) isa transaction, has timestamp $time" +
+          ", has amount $amoun, has transaction_number $transac;";
 
   private final List<String> args = Stream.of("first", "last", "comp", "amoun",
-          "transac", "time").collect(Collectors.toList());
+      "transac", "time").collect(Collectors.toList());
 
 
   public TransactionDAO(TypeDB_SessionWrapper wrapper) {
@@ -76,12 +76,14 @@ public class TransactionDAO {
     Set<Hashtable<String, String>> transactionsStr = wrapper.read_data(queryGet, args);
     for (Hashtable<String, String> currentTransaction : transactionsStr) {
       Cardholder tempCardholder = cardholders.get(
-          currentTransaction.get(0) + currentTransaction.get(1));
-      Merchant tempMerchant = merchants.get(currentTransaction.get(2));
-      transactions.add(new Transaction(currentTransaction.get(3), currentTransaction.get(4),
-          currentTransaction.get(5), tempMerchant, tempCardholder));
+          currentTransaction.get("first") + currentTransaction.get("last"));
+      Merchant tempMerchant = merchants.get(currentTransaction.get("comp"));
+      transactions.add(new Transaction(currentTransaction.get("amoun"), currentTransaction.get("transac"),
+          currentTransaction.get("time"), tempMerchant, tempCardholder));
     }
     return transactions;
   }
+
+
 }
 

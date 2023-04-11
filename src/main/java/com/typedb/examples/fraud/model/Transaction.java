@@ -53,12 +53,12 @@ public class Transaction {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof Transaction that)) {
-          return false;
-      }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Transaction that)) {
+      return false;
+    }
     return amount.equals(that.amount) && transaction_number.equals(that.transaction_number) &&
         date_transaction.equals(that.date_transaction) && merchant.equals(that.merchant) &&
         cardholder.equals(that.cardholder);

@@ -33,12 +33,12 @@ public class CardholderCoordinates {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof CardholderCoordinates that)) {
-          return false;
-      }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CardholderCoordinates that)) {
+      return false;
+    }
     return latitude.equals(that.latitude) && longitude.equals(that.longitude);
   }
 

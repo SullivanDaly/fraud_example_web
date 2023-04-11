@@ -83,12 +83,12 @@ public class Cardholder {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof Cardholder that)) {
-          return false;
-      }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Cardholder that)) {
+      return false;
+    }
     return person_first_name.equals(that.person_first_name) && person_last_name.equals(
         that.person_last_name) &&
         gender.equals(that.gender) && job.equals(that.job) && date_of_birth.equals(

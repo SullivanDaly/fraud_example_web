@@ -18,20 +18,21 @@ import org.example.TypeDB_SessionWrapper;
 public class CardholderDAO {
 
   private final TypeDB_SessionWrapper wrapper;
-  private final String queryInsert = "insert\n"
-      + "$gcp isa Geo_coordinate, has longitude %s, has latitude %s;\n"
-      + "$add isa Address, has street \"%s\", has city \"%s\", has state \"%s\", has zip %s;\n"
-      + "$per isa Person, has first_name \"%s\", has last_name \"%s\", has gender \"%s\", has job \"%s\", has date_of_birth %s;\n"
-      + "$car isa Card, has card_number %s;"
-      + "$r3(location: $add, geo: $gcp, identify: $per) isa locate;\n";
+  private final String queryInsert = "insert\n" +
+      "$gcp isa Geo_coordinate, has longitude %s, has latitude %s;\n" +
+      "$add isa Address, has street \"%s\", has city \"%s\", has state \"%s\", has zip %s;\n" +
+      "$per isa Person, has first_name \"%s\", has last_name \"%s\", has gender \"%s\", has job \"%s\", has date_of_birth %s;\n" +
+      "$car isa Card, has card_number %s;" +
+      "$r3(location: $add, geo: $gcp, identify: $per) isa locate;\n";
 
-  private final String queryGet = "$geo isa Geo_coordinate, has longitude $lon, has latitude $lat;"
-      + "$add isa Address, has street $street, has city $city, has state $state, has zip $zip;"
-      + "$per isa Person, has first_name $first, has last_name $last, has gender $gen, has job $job, has date_of_birth $birth;"
-      + "$car isa Card, has card_number $nbcar;"
-      + "$ban isa Bank, has name $bank;"
-      + "(location: $add, geo: $geo, identify: $per) isa locate;"
-      + "(owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;";
+  private final String queryGet =
+      "$geo isa Geo_coordinate, has longitude $lon, has latitude $lat;" +
+          "$add isa Address, has street $street, has city $city, has state $state, has zip $zip;" +
+          "$per isa Person, has first_name $first, has last_name $last, has gender $gen, has job $job, has date_of_birth $birth;" +
+          "$car isa Card, has card_number $nbcar;" +
+          "$ban isa Bank, has name $bank;" +
+          "(location: $add, geo: $geo, identify: $per) isa locate;" +
+          "(owner: $per, attached_card: $car, attached_bank: $ban) isa bank_account;";
 
   private final String querySafe = "(person: $per, company: $com, $geo1, $geo2) isa same_place;";
 
@@ -65,7 +66,8 @@ public class CardholderDAO {
 
 
   public void insert_all(Set<Cardholder> cardholderParam) throws IOException {
-    Set<String> queries = cardholderParam.stream().map(this::getQueryStr).collect(Collectors.toSet());
+    Set<String> queries = cardholderParam.stream().map(this::getQueryStr)
+        .collect(Collectors.toSet());
     wrapper.load_data(queries);
   }
 
@@ -92,15 +94,19 @@ public class CardholderDAO {
     return cardholders;
   }
 
-  public Cardholder cardholderBuilder(Hashtable<String, String> cardholdersParam, Hashtable<String, Bank> banksParam) {
+  public Cardholder cardholderBuilder(Hashtable<String, String> cardholdersParam,
+      Hashtable<String, Bank> banksParam) {
     Address tempAddress = new Address(cardholdersParam.get("street"), cardholdersParam.get("city"),
         cardholdersParam.get("state"), cardholdersParam.get("zip"));
     CardholderCoordinates tempCoord = new CardholderCoordinates(cardholdersParam.get("lat"),
         cardholdersParam.get("lon"));
-    CreditCard tempCard = new CreditCard(cardholdersParam.get("nbcar"), banksParam.get(cardholdersParam.get("bank")));
-    Cardholder resultCardholder = new Cardholder(cardholdersParam.get("first"), cardholdersParam.get("last"),
+    CreditCard tempCard = new CreditCard(cardholdersParam.get("nbcar"),
+        banksParam.get(cardholdersParam.get("bank")));
+    Cardholder resultCardholder = new Cardholder(cardholdersParam.get("first"),
+        cardholdersParam.get("last"),
         cardholdersParam.get("gen"),
-        cardholdersParam.get("job"), cardholdersParam.get("birth"), tempAddress, tempCoord, tempCard);
+        cardholdersParam.get("job"), cardholdersParam.get("birth"), tempAddress, tempCoord,
+        tempCard);
 
     return resultCardholder;
   }

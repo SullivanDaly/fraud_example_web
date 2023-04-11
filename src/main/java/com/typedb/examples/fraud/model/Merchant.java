@@ -43,12 +43,12 @@ public class Merchant {
 
   @Override
   public boolean equals(Object o) {
-      if (this == o) {
-          return true;
-      }
-      if (!(o instanceof Merchant merchant)) {
-          return false;
-      }
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Merchant merchant)) {
+      return false;
+    }
     return company_name.equals(merchant.company_name) && company_cat.equals(merchant.company_cat) &&
         merchantCoordinates.equals(merchant.merchantCoordinates);
   }
