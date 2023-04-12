@@ -9,7 +9,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 @RequestScoped
-public class MerchantDAO {
+public class MerchantDao {
 
   private static final String INSERT_QUERY_TEMPLATE =
       "insert " +
@@ -29,7 +29,7 @@ public class MerchantDAO {
 
     var results = db.getAll("match " + MERCHANT_MATCH);
 
-    var merchants = results.stream().map(MerchantDAO::fromResult).collect(Collectors.toSet());
+    var merchants = results.stream().map(MerchantDao::fromResult).collect(Collectors.toSet());
 
     return merchants;
   }
@@ -43,7 +43,7 @@ public class MerchantDAO {
 
   protected static Merchant fromResult(Hashtable<String, String> result) {
 
-    var coords = MerchantCoordsDAO.fromResult(result);
+    var coords = MerchantCoordsDao.fromResult(result);
 
     var merchant = new Merchant(result.get("merchantName"), result.get("merchantType"), coords);
 

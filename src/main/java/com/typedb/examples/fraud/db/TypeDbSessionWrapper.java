@@ -1,6 +1,7 @@
 package com.typedb.examples.fraud.db;
 
 import com.vaticle.typedb.client.api.TypeDBClient;
+import com.vaticle.typedb.client.api.TypeDBOptions;
 import com.vaticle.typedb.client.api.TypeDBSession;
 import com.vaticle.typedb.client.api.TypeDBTransaction;
 import java.util.Hashtable;
@@ -73,7 +74,7 @@ public class TypeDbSessionWrapper {
 
     LOGGER.info("Creating TypeDB session");
 
-    session = client.session(db, TypeDBSession.Type.DATA);
+    session = client.session(db, TypeDBSession.Type.DATA, TypeDBOptions.core().infer(true));
   }
 
   @PreDestroy

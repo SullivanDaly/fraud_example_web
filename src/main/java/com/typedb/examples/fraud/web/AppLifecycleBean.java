@@ -2,10 +2,10 @@ package com.typedb.examples.fraud.web;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import com.typedb.examples.fraud.dao.BankDAO;
-import com.typedb.examples.fraud.dao.CardholderDAO;
-import com.typedb.examples.fraud.dao.MerchantDAO;
-import com.typedb.examples.fraud.dao.TransactionDAO;
+import com.typedb.examples.fraud.dao.BankDao;
+import com.typedb.examples.fraud.dao.CardholderDao;
+import com.typedb.examples.fraud.dao.MerchantDao;
+import com.typedb.examples.fraud.dao.TransactionDao;
 import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.BankCoordinates;
 import com.typedb.examples.fraud.model.Cardholder;
@@ -37,13 +37,13 @@ public class AppLifecycleBean {
   TypeDBClient client;
 
   @Inject
-  BankDAO bankDAO;
+  BankDao banks;
   @Inject
-  CardholderDAO cardholerDAO;
+  CardholderDao cardholders;
   @Inject
-  MerchantDAO merchantDAO;
+  MerchantDao merchants;
   @Inject
-  TransactionDAO transactionDAO;
+  TransactionDao transactions;
 
   void onStart(@Observes StartupEvent ev) {
 
@@ -79,15 +79,15 @@ public class AppLifecycleBean {
 
     LOGGER.info("Preparing data");
 
-    var testBanks = new HashSet<Bank>();
-    var testCardholders = new HashSet<Cardholder>();
-    var testMerchants = new HashSet<Merchant>();
-    var testTransactions = new HashSet<Transaction>();
+    var sampleBanks = new HashSet<Bank>();
+    var sampleCardholders = new HashSet<Cardholder>();
+    var sampleMerchants = new HashSet<Merchant>();
+    var sampleTransactions = new HashSet<Transaction>();
 
-    testBanks.add(new Bank("ABC", new BankCoordinates("30.5", "-90.3")));
-    testBanks.add(new Bank("MNO", new BankCoordinates("33.986391", "-81.200714")));
-    testBanks.add(new Bank("QRS", new BankCoordinates("43.7", "-88.2")));
-    testBanks.add(new Bank("XYZ", new BankCoordinates("40.98", "-90.4")));
+    sampleBanks.add(new Bank("ABC", new BankCoordinates("30.5", "-90.3")));
+    sampleBanks.add(new Bank("MNO", new BankCoordinates("33.986391", "-81.200714")));
+    sampleBanks.add(new Bank("QRS", new BankCoordinates("43.7", "-88.2")));
+    sampleBanks.add(new Bank("XYZ", new BankCoordinates("40.98", "-90.4")));
 
     try (InputStream is = this.getClass().getClassLoader().getResourceAsStream("data.csv")) {
 
@@ -97,17 +97,17 @@ public class AppLifecycleBean {
 
         CsvToBean<Transaction> csv = new CsvToBeanBuilder<Transaction>(isr).withType(Transaction.class).build();
 
-        testTransactions.addAll(csv.parse());
+        sampleTransactions.addAll(csv.parse());
 
-        testTransactions.forEach(tx -> {
+        sampleTransactions.forEach(tx -> {
 
-          Bank bank = testBanks.stream().skip((int) (testBanks.size() * Math.random())).findFirst().get();
+          Bank bank = sampleBanks.stream().skip((int) (sampleBanks.size() * Math.random())).findFirst().get();
 
           tx.getCardholder().getCc().setBank(bank);
         });
 
-        testMerchants.addAll(testTransactions.stream().map(Transaction::getMerchant).collect(Collectors.toSet()));
-        testCardholders.addAll(testTransactions.stream().map(Transaction::getCardholder).collect(Collectors.toSet()));
+        sampleMerchants.addAll(sampleTransactions.stream().map(Transaction::getMerchant).collect(Collectors.toSet()));
+        sampleCardholders.addAll(sampleTransactions.stream().map(Transaction::getCardholder).collect(Collectors.toSet()));
       }
     }
     catch (Exception ex) {
@@ -116,9 +116,9 @@ public class AppLifecycleBean {
 
     LOGGER.info("Inserting data");
 
-    bankDAO.insertAll(testBanks);
-    cardholerDAO.insertAll(testCardholders);
-    merchantDAO.insertAll(testMerchants);
-    transactionDAO.insertAll(testTransactions);
+    banks.insertAll(sampleBanks);
+    cardholders.insertAll(sampleCardholders);
+    merchants.insertAll(sampleMerchants);
+    transactions.insertAll(sampleTransactions);
   }
 }

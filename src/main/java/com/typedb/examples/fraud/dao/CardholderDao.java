@@ -2,7 +2,6 @@ package com.typedb.examples.fraud.dao;
 
 import com.typedb.examples.fraud.db.TypeDbSessionWrapper;
 import com.typedb.examples.fraud.model.Cardholder;
-import com.typedb.examples.fraud.result.CardHolderMerchant;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -10,7 +9,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 @RequestScoped
-public class CardholderDAO {
+public class CardholderDao {
 
   private static final String INSERT_QUERY_TEMPLATE =
       "match " +
@@ -22,12 +21,6 @@ public class CardholderDAO {
       "  $cardholderLoc (location: $cardholderAddr, geo: $cardholderCoords, identify: $cardholder) isa locate;" +
       "  $cardholderAccount (owner: $cardholder, attached_card: $cc, attached_bank: $bank) isa bank_account;" +
       "  $cc isa Card, has card_number %s;";
-
-  private static final String SAFE_TX_MATCH =
-      "  (person: $cardholder, merchant: $merchant) isa same_place;";
-
-  private static final String UNSAFE_TX_MATCH =
-      "  (person: $cardholder, marchant: $merchant) isa unsafe_relationship";
 
   protected static final String CARDHOLDER_MATCH =
       "  $cardholderCoords isa Geo_coordinate, has latitude $cardholderLat, has longitude $cardholderLon;" +
@@ -42,41 +35,13 @@ public class CardholderDAO {
 
   public Set<Cardholder> getAll() {
 
-    var getQueryStr = "match " + CARDHOLDER_MATCH + BankDAO.BANK_MATCH;
+    var getQueryStr = "match " + CARDHOLDER_MATCH + BankDao.BANK_MATCH;
 
     var results = db.getAll(getQueryStr);
 
-    var cardholders = results.stream().map(CardholderDAO::fromResult).collect(Collectors.toSet());
+    var cardholders = results.stream().map(CardholderDao::fromResult).collect(Collectors.toSet());
 
     return cardholders;
-  }
-
-  public Set<CardHolderMerchant> getWithMerchants(boolean safeTx) {
-
-    var getQueryStr = "match " + CARDHOLDER_MATCH + BankDAO.BANK_MATCH + MerchantDAO.MERCHANT_MATCH;
-
-    if (safeTx) {
-      getQueryStr += SAFE_TX_MATCH;
-    }
-    else {
-      getQueryStr += UNSAFE_TX_MATCH;
-    }
-
-    var results = db.getAll(getQueryStr);
-
-    var cardholderMerchants = results.stream().map(CardholderDAO::fromResultWithMerchant).collect(Collectors.toSet());
-
-    return cardholderMerchants;
-  }
-
-  public Set<CardHolderMerchant> getWithSafeMerchants() {
-
-    return getWithMerchants(true);
-  }
-
-  public Set<CardHolderMerchant> getWithUnsafeMerchants() {
-
-    return getWithMerchants(false);
   }
 
   public void insertAll(Set<Cardholder> cardholders) {
@@ -88,9 +53,9 @@ public class CardholderDAO {
 
   protected static Cardholder fromResult(Hashtable<String, String> result) {
 
-    var cc = CreditCardDAO.fromResult(result);
-    var coords = CardholderCoordsDAO.fromResult(result);
-    var addr = AddressDAO.fromResult(result);
+    var cc = CreditCardDao.fromResult(result);
+    var coords = CardholderCoordsDao.fromResult(result);
+    var addr = AddressDao.fromResult(result);
 
     var firstName = result.get("firstName");
     var lastName = result.get("lastName");
@@ -103,22 +68,12 @@ public class CardholderDAO {
     return cardholder;
   }
 
-  protected static CardHolderMerchant fromResultWithMerchant(Hashtable<String, String> result) {
-
-    var cardholder = fromResult(result);
-    var merchant = MerchantDAO.fromResult(result);
-
-    var cardholderMerchant = new CardHolderMerchant(cardholder, merchant);
-
-    return cardholderMerchant;
-  }
-
   private String getInsertQueryStr(Cardholder cardholder) {
 
     var insertQueryStr = INSERT_QUERY_TEMPLATE.formatted(
         cardholder.getCc().getBank().getName(),
-        cardholder.getCoords().getLongitude(),
         cardholder.getCoords().getLatitude(),
+        cardholder.getCoords().getLongitude(),
         cardholder.getAddress().getStreet(),
         cardholder.getAddress().getCity(),
         cardholder.getAddress().getState(),

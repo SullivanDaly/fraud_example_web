@@ -10,7 +10,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 @RequestScoped
-public class BankDAO {
+public class BankDao {
 
   private static final String INSERT_QUERY_TEMPLATE =
       "insert " +
@@ -30,7 +30,7 @@ public class BankDAO {
 
     var results = db.getAll("match " + BANK_MATCH);
 
-    var banks = results.stream().map(BankDAO::fromResult).collect(Collectors.toSet());
+    var banks = results.stream().map(BankDao::fromResult).collect(Collectors.toSet());
 
     return banks;
   }

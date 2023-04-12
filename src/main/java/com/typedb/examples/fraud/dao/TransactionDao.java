@@ -10,7 +10,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 @RequestScoped
-public class TransactionDAO {
+public class TransactionDao {
 
   private static final String PERSON_CARD_MATCH =
       "match " +
@@ -22,25 +22,41 @@ public class TransactionDAO {
       "  (used_card: $cc ,to: $merchant) isa transaction, has timestamp %s, has amount %s, has transaction_number \"%s\";";
 
   private static final String TX_MATCH =
-      "  $cc isa Card, has card_number $ccNum;" +
-      "  $cardholderAcconut (owner: $cardholder, attached_card: $cc, $bank) isa bank_account;" +
       "  $tx (used_card: $cc ,to: $merchant) isa transaction, has timestamp $txTime, has amount $txAmount, has transaction_number $txNum;";
 
+  private static final String SUSPECT_TX_MATCH =
+      "  $suspect (unsafe_buyer: $cardholder, unsafe_company: $merchant) isa unsafe_relationship;";
   @Inject
   TypeDbSessionWrapper db;
 
-  public TransactionDAO(TypeDbSessionWrapper db) {
+  public TransactionDao(TypeDbSessionWrapper db) {
     this.db = db;
   }
 
   public Set<Transaction> getAll() {
 
+    return getAll(false);
+  }
+
+  public Set<Transaction> getSuspect() {
+
+    return getAll(true);
+  }
+
+  private Set<Transaction> getAll(boolean suspect) {
+
     var getQueryStr =
-        "match " + TX_MATCH + CardholderDAO.CARDHOLDER_MATCH + BankDAO.BANK_MATCH + MerchantDAO.MERCHANT_MATCH;
+        "match " + TX_MATCH + CardholderDao.CARDHOLDER_MATCH + BankDao.BANK_MATCH + MerchantDao.MERCHANT_MATCH;
+
+    if (suspect) {
+      getQueryStr += SUSPECT_TX_MATCH;
+    }
+
+    System.out.println(getQueryStr);
 
     var results = db.getAll(getQueryStr);
 
-    var transactions = results.stream().map(TransactionDAO::fromResult).collect(Collectors.toSet());
+    var transactions = results.stream().map(TransactionDao::fromResult).collect(Collectors.toSet());
 
     return transactions;
   }
@@ -54,8 +70,8 @@ public class TransactionDAO {
 
   protected static Transaction fromResult(Hashtable<String, String> result) {
 
-    var merchant = MerchantDAO.fromResult(result);
-    var cardholder = CardholderDAO.fromResult(result);
+    var merchant = MerchantDao.fromResult(result);
+    var cardholder = CardholderDao.fromResult(result);
 
     var txAmount = result.get("txAmount");
     var txNum = result.get("txNum");

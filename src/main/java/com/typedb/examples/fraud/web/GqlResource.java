@@ -1,9 +1,9 @@
 package com.typedb.examples.fraud.web;
 
-import com.typedb.examples.fraud.dao.BankDAO;
-import com.typedb.examples.fraud.dao.CardholderDAO;
-import com.typedb.examples.fraud.dao.MerchantDAO;
-import com.typedb.examples.fraud.dao.TransactionDAO;
+import com.typedb.examples.fraud.dao.BankDao;
+import com.typedb.examples.fraud.dao.CardholderDao;
+import com.typedb.examples.fraud.dao.MerchantDao;
+import com.typedb.examples.fraud.dao.TransactionDao;
 import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.Cardholder;
 import com.typedb.examples.fraud.model.Merchant;
@@ -19,53 +19,53 @@ import org.eclipse.microprofile.graphql.Query;
 public class GqlResource {
 
   @Inject
-  BankDAO bankDAO;
+  BankDao banks;
   @Inject
-  MerchantDAO merchantDAO;
+  MerchantDao merchants;
   @Inject
-  CardholderDAO cardholderDAO;
+  CardholderDao cardholders;
   @Inject
-  TransactionDAO transactionDAO;
+  TransactionDao transactions;
 
   @Query
   @Description("Get all banks")
   public Set<Bank> getBanks() {
 
-    return bankDAO.getAll();
+    return banks.getAll();
   }
 
   @Query
   @Description("Get all merchants")
   public Set<Merchant> getMerchants() {
 
-    return merchantDAO.getAll();
+    return merchants.getAll();
   }
 
   @Query
   @Description("Get all cardholders")
   public Set<Cardholder> getCardholders() {
 
-    return cardholderDAO.getAll();
+    return cardholders.getAll();
   }
 
   @Query
   @Description("Get all transactions")
   public Set<Transaction> getTransactions() {
 
-    return transactionDAO.getAll();
+    return transactions.getAll();
   }
 
   @Query
   @Description("Get cardholders and merchants from safe transactions")
   public Set<CardHolderMerchant> getCardholdersWithSafeTransactions() {
 
-    return cardholderDAO.getWithSafeMerchants();
+    return cardholders.getWithSafeMerchants();
   }
 
   @Query
   @Description("Get cardholders and merchants from unsafe transactions")
-  public Set<CardHolderMerchant> getCardholdersWithUnsafeTransactions() {
+  public Set<Transaction> getSuspectTransactions() {
 
-    return cardholderDAO.getWithUnsafeMerchants();
+    return transactions.getSuspect();
   }
 }
