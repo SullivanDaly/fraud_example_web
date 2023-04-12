@@ -52,8 +52,6 @@ public class TransactionDao {
       getQueryStr += SUSPECT_TX_MATCH;
     }
 
-    System.out.println(getQueryStr);
-
     var results = db.getAll(getQueryStr);
 
     var transactions = results.stream().map(TransactionDao::fromResult).collect(Collectors.toSet());
