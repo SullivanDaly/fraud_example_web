@@ -11,6 +11,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 @RequestScoped
@@ -21,14 +22,10 @@ public class TypeDbSessionWrapper {
   @Inject
   TypeDBClient client;
 
-  private final String db;
+  @ConfigProperty(name = "typedb.db", defaultValue="fraud")
+  String db;
 
   private TypeDBSession session;
-
-  public TypeDbSessionWrapper() {
-
-    this.db = "fraud";
-  }
 
   public void insertAll(Set<String> queries) {
 
