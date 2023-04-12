@@ -8,7 +8,6 @@ import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.Cardholder;
 import com.typedb.examples.fraud.model.Merchant;
 import com.typedb.examples.fraud.model.Transaction;
-import com.typedb.examples.fraud.result.CardHolderMerchant;
 import java.util.Set;
 import javax.inject.Inject;
 import org.eclipse.microprofile.graphql.Description;
@@ -53,13 +52,6 @@ public class GqlResource {
   public Set<Transaction> getTransactions() {
 
     return transactions.getAll();
-  }
-
-  @Query
-  @Description("Get cardholders and merchants from safe transactions")
-  public Set<CardHolderMerchant> getCardholdersWithSafeTransactions() {
-
-    return cardholders.getWithSafeMerchants();
   }
 
   @Query
