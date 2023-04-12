@@ -1,6 +1,5 @@
-package com.typedb.examples.fraud.dao;
+package com.typedb.examples.fraud.db;
 
-import com.typedb.examples.fraud.db.TypeDbSessionWrapper;
 import com.typedb.examples.fraud.model.Transaction;
 import com.typedb.examples.fraud.util.Formatter;
 import java.util.Hashtable;

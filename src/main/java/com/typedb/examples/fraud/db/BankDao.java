@@ -1,6 +1,5 @@
-package com.typedb.examples.fraud.dao;
+package com.typedb.examples.fraud.db;
 
-import com.typedb.examples.fraud.db.TypeDbSessionWrapper;
 import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.BankCoordinates;
 import java.util.Hashtable;

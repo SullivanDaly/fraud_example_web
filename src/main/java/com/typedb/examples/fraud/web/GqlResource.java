@@ -1,7 +1,7 @@
 package com.typedb.examples.fraud.web;
 
-import com.typedb.examples.fraud.dao.StandardDao;
-import com.typedb.examples.fraud.dao.TransactionDao;
+import com.typedb.examples.fraud.db.StandardDao;
+import com.typedb.examples.fraud.db.TransactionDao;
 import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.Cardholder;
 import com.typedb.examples.fraud.model.Merchant;
