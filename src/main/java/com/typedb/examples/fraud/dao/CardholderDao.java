@@ -9,7 +9,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 @RequestScoped
-public class CardholderDao {
+public class CardholderDao implements StandardDao<Cardholder> {
 
   private static final String INSERT_QUERY_TEMPLATE =
       "match " +

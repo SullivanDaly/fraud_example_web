@@ -2,9 +2,7 @@ package com.typedb.examples.fraud.web;
 
 import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import com.typedb.examples.fraud.dao.BankDao;
-import com.typedb.examples.fraud.dao.CardholderDao;
-import com.typedb.examples.fraud.dao.MerchantDao;
+import com.typedb.examples.fraud.dao.StandardDao;
 import com.typedb.examples.fraud.dao.TransactionDao;
 import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.BankCoordinates;
@@ -37,11 +35,11 @@ public class AppLifecycleBean {
   TypeDBClient client;
 
   @Inject
-  BankDao banks;
+  StandardDao<Bank> banks;
   @Inject
-  CardholderDao cardholders;
+  StandardDao<Cardholder> cardholders;
   @Inject
-  MerchantDao merchants;
+  StandardDao<Merchant> merchants;
   @Inject
   TransactionDao transactions;
 

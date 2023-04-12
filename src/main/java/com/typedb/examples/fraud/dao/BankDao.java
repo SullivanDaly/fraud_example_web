@@ -10,7 +10,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 @RequestScoped
-public class BankDao {
+public class BankDao implements StandardDao<Bank> {
 
   private static final String INSERT_QUERY_TEMPLATE =
       "insert " +
