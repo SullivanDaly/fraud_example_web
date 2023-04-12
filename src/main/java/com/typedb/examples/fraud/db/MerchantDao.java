@@ -22,7 +22,7 @@ public class MerchantDao implements StandardDao<Merchant> {
       "  $merchantGeo (geo: $merchantCoords, identify: $merchant) isa geolocate;";
 
   @Inject
-  TypeDbSessionWrapper db;
+  TypeDBSessionWrapper db;
 
   public Set<Merchant> getAll() {
 

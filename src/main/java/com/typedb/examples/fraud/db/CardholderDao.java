@@ -30,7 +30,7 @@ public class CardholderDao implements StandardDao<Cardholder> {
       "  $cardholderAccount (owner: $cardholder, attached_card: $cc, attached_bank: $bank) isa bank_account;";
 
   @Inject
-  TypeDbSessionWrapper db;
+  TypeDBSessionWrapper db;
 
   public Set<Cardholder> getAll() {
 

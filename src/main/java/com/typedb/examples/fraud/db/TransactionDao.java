@@ -26,9 +26,9 @@ public class TransactionDao implements StandardDao<Transaction> {
   private static final String SUSPECT_TX_MATCH =
       "  $suspect (unsafe_buyer: $cardholder, unsafe_company: $merchant) isa unsafe_relationship;";
   @Inject
-  TypeDbSessionWrapper db;
+  TypeDBSessionWrapper db;
 
-  public TransactionDao(TypeDbSessionWrapper db) {
+  public TransactionDao(TypeDBSessionWrapper db) {
     this.db = db;
   }
 

@@ -23,7 +23,7 @@ public class BankDao implements StandardDao<Bank> {
       "  $bankGeo (geo: $bankCoords, identify: $bank) isa geolocate;";
 
   @Inject
-  TypeDbSessionWrapper db;
+  TypeDBSessionWrapper db;
 
   public Set<Bank> getAll() {
 
