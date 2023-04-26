@@ -1,7 +1,30 @@
+/*
+ * Copyright (C) 2022 Vaticle
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.typedb.examples.fraud.db;
 
 import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.BankCoordinates;
+import com.typedb.examples.fraud.model.Cardholder;
+
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -9,7 +32,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 @RequestScoped
-public class BankDao implements StandardDao<Bank> {
+public class BankDao implements Dao<Bank> {
 
   private static final String INSERT_QUERY_TEMPLATE =
       "insert " +
@@ -22,12 +45,26 @@ public class BankDao implements StandardDao<Bank> {
       "  $bankCoords isa Geo_coordinate, has latitude $bankLat, has longitude $bankLon;" +
       "  $bankGeo (geo: $bankCoords, identify: $bank) isa geolocate;";
 
+  protected static final String BANK_MATCH_NAME =
+      "  $bankName = \"%s\";";
   @Inject
   TypeDBSessionWrapper db;
 
   public Set<Bank> getAll() {
 
     var results = db.getAll("match " + BANK_MATCH);
+
+    var banks = results.stream().map(BankDao::fromResult).collect(Collectors.toSet());
+
+    return banks;
+  }
+
+  public Set<Bank> getName(String name){
+
+    var matchName = BANK_MATCH_NAME.formatted(name);
+    var getQueryStr = "match " + BANK_MATCH + matchName;
+
+    var results = db.getAll(getQueryStr);
 
     var banks = results.stream().map(BankDao::fromResult).collect(Collectors.toSet());
 

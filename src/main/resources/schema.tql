@@ -1,7 +1,28 @@
-define
+#
+# Copyright (C) 2022 Vaticle
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
 
-# dataset ?
+# dataset without banks
 # https://www.kaggle.com/datasets/kartik2112/fraud-detection?select=fraudTrain.csv
+
+ define
 
 name sub attribute,
     value string;
@@ -70,8 +91,6 @@ Address sub entity,
     owns zip,
     plays locate:location;
 
-
-#### USELESS ####
 Card sub entity,
     owns card_number,
     plays bank_account:attached_card,
@@ -106,7 +125,6 @@ bank_account sub relation,
     relates attached_card,
     relates attached_bank;
 
-#maybe add transaction_number as ID
 transaction sub relation,
     owns timestamp,
     owns amount,
@@ -114,15 +132,12 @@ transaction sub relation,
     relates used_card,
     relates to;
 
-#locate as a subtype of geolocate
-locate sub relation,
-    relates location,
-    relates geo,
-    relates identify;
-
 geolocate sub relation,
     relates geo,
     relates identify;
+
+locate sub geolocate,
+    relates location;
 
 customer_relationship sub relation,
     relates buyer,
@@ -152,6 +167,8 @@ rule isa_same_place:
         $geo2 isa Geo_coordinate, has longitude $l1, has latitude $l2;
         (geo: $geo1, identify: $per, $arg) isa locate;
         (geo: $geo2, identify: $com) isa geolocate;
+        $com isa Company;
+        $per isa Person;
     } then {
         (person: $per, company: $com, located_com: $geo2, located_per: $geo1) isa same_place;
     };
@@ -162,7 +179,7 @@ rule is_not_safe:
         $com isa Company;
         (buyer: $per, company: $com) isa customer_relationship;
         not{
-            (person: $per, company: $com, $x, $y) isa same_place;
+            (person: $per, company: $com) isa same_place;
         };
     } then {
         (unsafe_buyer: $per, unsafe_company: $com) isa unsafe_relationship;

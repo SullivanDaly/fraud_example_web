@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2022 Vaticle
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package com.typedb.examples.fraud.db;
 
 import com.typedb.examples.fraud.model.Cardholder;
@@ -8,7 +29,7 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 
 @RequestScoped
-public class CardholderDao implements StandardDao<Cardholder> {
+public class CardholderDao implements Dao<Cardholder> {
 
   private static final String INSERT_QUERY_TEMPLATE =
       "match " +
@@ -29,12 +50,27 @@ public class CardholderDao implements StandardDao<Cardholder> {
       "  $cc isa Card, has card_number $ccNum;" +
       "  $cardholderAccount (owner: $cardholder, attached_card: $cc, attached_bank: $bank) isa bank_account;";
 
+  protected static final String CARDHOLDER_MATCH_LASTNAME =
+      " $lastName = \"%s\";";
+
   @Inject
   TypeDBSessionWrapper db;
 
   public Set<Cardholder> getAll() {
 
     var getQueryStr = "match " + CARDHOLDER_MATCH + BankDao.BANK_MATCH;
+
+    var results = db.getAll(getQueryStr);
+
+    var cardholders = results.stream().map(CardholderDao::fromResult).collect(Collectors.toSet());
+
+    return cardholders;
+  }
+
+  public Set<Cardholder> getName(String lastName){
+
+    var matchLastName = CARDHOLDER_MATCH_LASTNAME.formatted(lastName);
+    var getQueryStr = "match " + CARDHOLDER_MATCH + matchLastName + BankDao.BANK_MATCH;
 
     var results = db.getAll(getQueryStr);
 
