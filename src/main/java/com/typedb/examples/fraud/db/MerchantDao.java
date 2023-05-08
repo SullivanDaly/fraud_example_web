@@ -21,7 +21,6 @@
 
 package com.typedb.examples.fraud.db;
 
-import com.typedb.examples.fraud.model.Bank;
 import com.typedb.examples.fraud.model.Merchant;
 import java.util.Hashtable;
 import java.util.Set;
@@ -36,12 +35,12 @@ public class MerchantDao implements Dao<Merchant> {
       "insert " +
       "  $merchant isa Company, has name \"%s\", has company_type \"%s\";" +
       "  $merchantCoords isa Geo_coordinate, has latitude %s, has longitude %s;" +
-      "  $merchantGeo (geo: $merchantCoords, identify: $merchant) isa geolocate;";
+      "  $merchantGeo (coordinates: $merchantCoords, transacting_party: $merchant) isa geolocate;";
 
   protected static final String MERCHANT_MATCH =
       "  $merchant isa Company, has name $merchantName, has company_type $merchantType;" +
       "  $merchantCoords isa Geo_coordinate, has latitude $merchantLat, has longitude $merchantLon;" +
-      "  $merchantGeo (geo: $merchantCoords, identify: $merchant) isa geolocate;";
+      "  $merchantGeo (coordinates: $merchantCoords, transacting_party: $merchant) isa geolocate;";
 
   protected static final String MERCHANT_MATCH_NAME =
       "  $merchantName = \"%s\";";
@@ -51,25 +50,26 @@ public class MerchantDao implements Dao<Merchant> {
 
   public Set<Merchant> getAll() {
 
-    var results = db.getAll("match " + MERCHANT_MATCH);
+    var getQueryStr = "match " + MERCHANT_MATCH;
 
-    var merchants = results.stream().map(MerchantDao::fromResult).collect(Collectors.toSet());
-
-    return merchants;
+    return getMerchants(getQueryStr);
   }
 
-  public Set<Merchant> getName(String name){
+  public Set<Merchant> getByName(String name){
 
     var matchName = MERCHANT_MATCH_NAME.formatted(name);
     var getQueryStr = "match " + MERCHANT_MATCH + matchName;
 
-    var results = db.getAll(getQueryStr);
+    return getMerchants(getQueryStr);
+  }
 
+  private Set<Merchant> getMerchants(String query){
+
+    var results = db.getAll(query);
     var merchants = results.stream().map(MerchantDao::fromResult).collect(Collectors.toSet());
 
     return merchants;
   }
-
 
   public void insertAll(Set<Merchant> merchants) {
 

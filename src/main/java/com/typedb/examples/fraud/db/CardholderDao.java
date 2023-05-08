@@ -38,7 +38,7 @@ public class CardholderDao implements Dao<Cardholder> {
       "  $cardholderCoords isa Geo_coordinate, has latitude %s, has longitude %s;" +
       "  $cardholderAddr isa Address, has street \"%s\", has city \"%s\", has state \"%s\", has zip %s;" +
       "  $cardholder isa Person, has first_name \"%s\", has last_name \"%s\", has gender \"%s\", has job \"%s\", has date_of_birth %s;" +
-      "  $cardholderLoc (location: $cardholderAddr, geo: $cardholderCoords, identify: $cardholder) isa locate;" +
+      "  $cardholderLoc (address: $cardholderAddr, coordinates: $cardholderCoords, transacting_party: $cardholder) isa locate;" +
       "  $cardholderAccount (owner: $cardholder, attached_card: $cc, attached_bank: $bank) isa bank_account;" +
       "  $cc isa Card, has card_number %s;";
 
@@ -46,7 +46,7 @@ public class CardholderDao implements Dao<Cardholder> {
       "  $cardholderCoords isa Geo_coordinate, has latitude $cardholderLat, has longitude $cardholderLon;" +
       "  $cardholderAddr isa Address, has street $street, has city $city, has state $state, has zip $zip;" +
       "  $cardholder isa Person, has first_name $firstName, has last_name $lastName, has gender $gender, has job $job, has date_of_birth $birthDate;" +
-      "  $cardholderLoc (location: $cardholderAddr, geo: $cardholderCoords, identify: $cardholder) isa locate;" +
+      "  $cardholderLoc (address: $cardholderAddr, coordinates: $cardholderCoords, transacting_party: $cardholder) isa locate;" +
       "  $cc isa Card, has card_number $ccNum;" +
       "  $cardholderAccount (owner: $cardholder, attached_card: $cc, attached_bank: $bank) isa bank_account;";
 
@@ -60,20 +60,20 @@ public class CardholderDao implements Dao<Cardholder> {
 
     var getQueryStr = "match " + CARDHOLDER_MATCH + BankDao.BANK_MATCH;
 
-    var results = db.getAll(getQueryStr);
-
-    var cardholders = results.stream().map(CardholderDao::fromResult).collect(Collectors.toSet());
-
-    return cardholders;
+    return getCardholders(getQueryStr);
   }
 
-  public Set<Cardholder> getName(String lastName){
+  public Set<Cardholder> getByName(String lastName){
 
     var matchLastName = CARDHOLDER_MATCH_LASTNAME.formatted(lastName);
     var getQueryStr = "match " + CARDHOLDER_MATCH + matchLastName + BankDao.BANK_MATCH;
 
-    var results = db.getAll(getQueryStr);
+    return getCardholders(getQueryStr);
+  }
 
+  private Set<Cardholder> getCardholders(String query){
+
+    var results = db.getAll(query);
     var cardholders = results.stream().map(CardholderDao::fromResult).collect(Collectors.toSet());
 
     return cardholders;
